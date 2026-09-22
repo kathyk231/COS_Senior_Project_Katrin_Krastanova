@@ -24,3 +24,10 @@ class NavmeshManager:
             if len(points) >= 3:
                 pygame.draw.polygon(screen,(255,255,206),points)
                 pygame.draw.lines(screen,(107, 44, 255), True, points,2)
+    def is_walkable(self, position):
+        x =(position.x - 500)/50
+        y =(position.y - 300)/50
+        point = (x, 0, y)
+        result = self.pathfinder.sample(point)
+        return result is not None
+

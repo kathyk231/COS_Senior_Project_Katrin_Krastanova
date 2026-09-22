@@ -1,5 +1,7 @@
 import pygame
 from player import Player
+from Navmesh_manager import NavmeshManager
+from test_world import get_geometry
 
 WIDTH, HEIGHT, FPS = 960, 540, 60
 
@@ -9,6 +11,9 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Window Test One")
     clock = pygame.time.Clock()
+    vertices, polygons = (get_geometry())
+    navmesh = NavmeshManager()
+    navmesh.bake(vertices, polygons)
     player = Player((400, 300))
     running = True
     while running:

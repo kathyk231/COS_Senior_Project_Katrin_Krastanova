@@ -9,7 +9,7 @@ def main():
     pygame.init()
 
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Window Test One")
+    pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
     vertices, polygons = (get_geometry())
     navmesh = NavmeshManager()
@@ -23,7 +23,8 @@ def main():
                 running = False
         player.update(dt)
         screen.fill((30,35,50))
-        player.draw(screen)
+        navmesh.draw(screen)
+        #player.draw(screen)
         pygame.display.flip()
     pygame.quit()
 

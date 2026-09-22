@@ -2,16 +2,17 @@ import pygame
 from player import Player
 
 WIDTH, HEIGHT, FPS = 960, 540, 60
-player = Player((400,300))
+
 def main():
     pygame.init()
 
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Window Test One")
     clock = pygame.time.Clock()
+    player = Player((400, 300))
     running = True
     while running:
-        dt = clock.tick(60)/1000.0
+        dt = clock.tick(FPS)/1000.0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False

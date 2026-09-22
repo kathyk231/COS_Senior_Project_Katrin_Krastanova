@@ -22,6 +22,6 @@ class Player:
         direction = direction.normalize()
         new_position = (self.position + direction * self.speed * dt)
         #if navmesh.is_walkable(new_position):
-        #    self.position = new_position
+        self.position = new_position
     def draw(self, surface):
         pygame.draw.circle(surface, (193, 217, 150), (int(self.position.x), int(self.position.y)), self.radius)

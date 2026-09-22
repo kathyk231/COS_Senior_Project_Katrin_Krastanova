@@ -24,4 +24,4 @@ class Player:
         #if navmesh.is_walkable(new_position):
         self.position = new_position
     def draw(self, surface):
-        pygame.draw.circle(surface, (193, 217, 150), (int(self.position.x), int(self.position.y)), self.radius)
+        pygame.draw.circle(surface, (165, 0, 0), self.position, self.radius)

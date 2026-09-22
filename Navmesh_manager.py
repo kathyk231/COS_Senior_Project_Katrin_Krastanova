@@ -18,9 +18,9 @@ class NavmeshManager:
             points = []
             for vertex_index in polygon:
                 vertex = self.vertices[vertex_index]
-                x = vertex[0]*50
-                y = vertex[1]*100
+                x = vertex[0]* 80 +500
+                y = vertex[2]* 70 +300
                 points.append((x,y))
             if len(points) >= 3:
-                pygame.draw.polygon(screen,(255,242,0),points)
-                pygame.draw.lines(screen,(0, 0, 255), True, points,2)
+                pygame.draw.polygon(screen,(255,255,206),points)
+                pygame.draw.lines(screen,(107, 44, 255), True, points,2)

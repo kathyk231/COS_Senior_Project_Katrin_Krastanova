@@ -14,7 +14,7 @@ def main():
     vertices, polygons = (get_geometry())
     navmesh = NavmeshManager()
     navmesh.bake(vertices, polygons)
-    player = Player((400, 300))
+    player = Player((500, 300))
     running = True
     while running:
         dt = clock.tick(FPS)/1000.0
@@ -24,7 +24,7 @@ def main():
         player.update(dt)
         screen.fill((30,35,50))
         navmesh.draw(screen)
-        #player.draw(screen)
+        player.draw(screen)
         pygame.display.flip()
     pygame.quit()
 

@@ -18,15 +18,15 @@ class NavmeshManager:
             points = []
             for vertex_index in polygon:
                 vertex = self.vertices[vertex_index]
-                x = vertex[0]* 80 +500
+                x = vertex[0]* 70 +500
                 y = vertex[2]* 70 +300
                 points.append((x,y))
             if len(points) >= 3:
                 pygame.draw.polygon(screen,(255,255,206),points)
                 pygame.draw.lines(screen,(107, 44, 255), True, points,2)
     def is_walkable(self, position):
-        x =(position.x - 500)/50
-        y =(position.y - 300)/50
+        x =(position.x - 500)/55
+        y =(position.y - 300)/55
         point = (x, 0, y)
         result = self.pathfinder.sample(point)
         return result is not None

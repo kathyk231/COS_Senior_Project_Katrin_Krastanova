@@ -1,7 +1,9 @@
 import pygame
 from player import Player
+from player_state import PlayerState, Role
 from Navmesh_manager import NavmeshManager
 from test_world import get_geometry
+from castle import Castle
 
 WIDTH, HEIGHT, FPS = 960, 540, 60
 
@@ -14,7 +16,9 @@ def main():
     vertices, polygons = (get_geometry())
     navmesh = NavmeshManager()
     navmesh.bake(vertices, polygons)
-    player = Player((500, 300))
+    player_state = PlayerState(Role.SERVANT)
+    player = Player((500, 300), player_state)
+    castle = Castle()
     running = True
     while running:
         dt = clock.tick(FPS)/1000.0
@@ -24,6 +28,7 @@ def main():
         player.update(dt,navmesh)
         screen.fill((30,35,50))
         navmesh.draw(screen)
+        castle.draw(screen)
         player.draw(screen)
         pygame.display.flip()
     pygame.quit()

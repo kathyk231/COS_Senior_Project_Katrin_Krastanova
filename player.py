@@ -1,10 +1,11 @@
 import pygame
 
 class Player:
-    def __init__(self, position):
+    def __init__(self, position, state):
         self.position = pygame.Vector2(position)
         self.speed = 170
         self.radius = 7
+        self.state = state
 
     def update(self, dt, navmesh):
         keys = pygame.key.get_pressed()

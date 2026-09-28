@@ -9,13 +9,13 @@ class Castle:
     def create_castle(self):
         self.rooms =[
             {"name": "Great Hall",
-             "rect": pygame.Rect(250, 150,450, 250)},
+             "rect": pygame.Rect(250, 150,460, 250)},
             {"name": "Kings Bedroom",
              "rect": pygame.Rect(500, 50, 210, 100)},
             {"name": "Treasury",
-             "rect": pygame.Rect(700, 200, 160, 150)},
+             "rect": pygame.Rect(710, 200, 150, 120)},
             {"name": "Kitchen",
-             "rect": pygame.Rect(80, 220, 100, 100)}
+             "rect": pygame.Rect(80, 200, 170, 100)}
         ]
     def draw(self, screen):
         for room in self.rooms:

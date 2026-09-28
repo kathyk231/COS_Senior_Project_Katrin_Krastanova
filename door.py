@@ -6,12 +6,15 @@ class Door:
         self.position = position
         self.is_open =False
         if allowed_role is None:
-            self.allowed.role=[]
+            self.allowed_role=[]
         else:
             self.allowed_role = allowed_role
     def can_open(self,role):
         return role in self.allowed_role
-    def open_door(self):
-        self.is_open = True
+    def open_door(self, role):
+        if self.can_open(role):
+            self.is_open = True
+            return True
+        return False
     def close_door(self):
         self.is_open = False

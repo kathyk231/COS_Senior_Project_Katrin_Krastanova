@@ -15,7 +15,7 @@ class Castle:
             {"name": "Treasury",
              "rect": pygame.Rect(700, 200, 160, 150)},
             {"name": "Kitchen",
-             "rect": pygame.Rect(80, 220, 100, 100)
+             "rect": pygame.Rect(80, 220, 100, 100)}
         ]
     def draw(self, screen):
         for room in self.rooms:

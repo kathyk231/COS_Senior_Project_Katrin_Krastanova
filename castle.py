@@ -21,10 +21,10 @@ class Castle:
              "rect": pygame.Rect(80, 200, 170, 100)}
         ]
     def create_doors(self):
-        self.doors = [Door("Kitchens door",(250,270),[Role.ROYAL, Role.SERVANT]),
-                      Door("Treasury door",(700, 270), Role.ROYAL),
+        self.doors = [Door("Kitchens door",(250,270),[Role.SERVANT]),
+                      Door("Treasury door",(700, 270), [Role.ROYAL]),
                       Door("Great Hall foor",(250, 270), [Role.ROYAL, Role.SERVANT]),
-                      Door("Kings door",(600,150), Role.ROYAL)]
+                      Door("Kings door",(600,150), [Role.ROYAL])]
     def draw(self, screen):
         for room in self.rooms:
             pygame.draw.rect(screen,(255,255,255),room["rect"])

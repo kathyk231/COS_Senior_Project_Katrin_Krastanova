@@ -16,7 +16,7 @@ def main():
     vertices, polygons = (get_geometry())
     navmesh = NavmeshManager()
     navmesh.bake(vertices, polygons)
-    player_state = PlayerState(Role.SERVANT)
+    player_state = PlayerState(Role.ROYAL)
     player = Player((500, 300), player_state)
     castle = Castle()
     running = True

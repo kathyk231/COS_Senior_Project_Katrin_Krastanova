@@ -10,7 +10,7 @@ class Door:
         else:
             self.allowed_role = allowed_role
     def can_open(self,role):
-        return role in self.allowed_role
+        return role == self.allowed_role
     def open_door(self, role):
         if self.can_open(role):
             self.is_open = True

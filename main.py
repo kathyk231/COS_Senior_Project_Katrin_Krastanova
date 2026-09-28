@@ -20,6 +20,9 @@ def main():
     player = Player((500, 300), player_state)
     castle = Castle()
     running = True
+    print("Test role-doors", player_state.role)
+    for door in castle.doors:
+        print(door.name, door.can_open(player_state.role))
     while running:
         dt = clock.tick(FPS)/1000.0
         for event in pygame.event.get():
@@ -35,3 +38,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

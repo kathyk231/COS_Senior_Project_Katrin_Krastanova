@@ -13,14 +13,14 @@ class NavmeshManager:
         for room in rooms:
             rect = room["rect"]
             start_index= len(vertices)
-            vertices.extend([(rect.left,0,rect.top), (rect.right,0,rect.top),(rect.right,0,rect.bottom), (rect.left, 0,rect.bottom)])
+            vertices.extend([(rect.left,0,rect.top), (rect.left, 0,rect.bottom),(rect.right,0,rect.top),(rect.right,0,rect.bottom)])
             polygons.append([start_index,start_index+1,start_index+2,start_index+3])
         passage_left = 1740
         passage_right = 1780
         passage_top =990
         passage_bottom= 1456
         start_index= len(vertices)
-        vertices.extend([(passage_left,0,passage_top),(passage_right,0,passage_top),(passage_right,0,passage_bottom),(passage_left,0,passage_bottom)])
+        vertices.extend([(passage_left,0,passage_top),(passage_left,0,passage_bottom),(passage_right,0,passage_top),(passage_right,0,passage_bottom)])
         polygons.append([start_index, start_index + 1, start_index + 2, start_index + 3])
         baker = navmesh_baker.NavmeshBaker()
         baker.add_geometry(vertices,polygons)

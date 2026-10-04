@@ -49,14 +49,16 @@ class Castle:
                       Door("Hidden passage - SB", (850, 850), [Role.ROYAL, Role.SERVANT])
 
                       ]
-    def draw(self, screen):
+    def draw(self, screen, camera):
         for room in self.rooms:
-            pygame.draw.rect(screen,(255,255,255),room["rect"])
-            pygame.draw.rect(screen,(255, 118, 189),room["rect"],3)
+            rect = room["rect"].move(-int(camera.x), -int(camera.y))
+            pygame.draw.rect(screen,(230,230,230),rect)
+            pygame.draw.rect(screen,(255, 118, 189),rect,3)
         for door in self.doors:
-            x,y =door.position
+            x = door.position[0] - camera.x
+            y = door.position[1] - camera.y
             if door.is_open:
                 color =(0,255,0)
             else:
-                color =(200,50,50)
-            pygame.draw.circle(screen,color,(x,y),7)
+                color =(0,50,255)
+            pygame.draw.circle(screen,color,(int(x),int(y)),7)

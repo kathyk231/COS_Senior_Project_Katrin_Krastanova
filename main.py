@@ -1,8 +1,6 @@
 import pygame
 from player import Player
 from player_state import PlayerState, Role
-from Navmesh_manager import NavmeshManager
-from test_world import get_geometry
 from castle import Castle
 
 WIDTH, HEIGHT, FPS = 960, 540, 60
@@ -13,26 +11,20 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
-    vertices, polygons = (get_geometry())
-    navmesh = NavmeshManager()
-    navmesh.bake(vertices, polygons)
     player_state = PlayerState(Role.ROYAL)
-    player = Player((500, 300), player_state)
+    player = Player((600, 350), player_state)
     castle = Castle()
     running = True
-    print("Test role-doors", player_state.role)
-    for door in castle.doors:
-        print(door.name, door.can_open(player_state.role))
     while running:
         dt = clock.tick(FPS)/1000.0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-        player.update(dt,navmesh)
+        player.update(dt)
+        camera = pygame.Vector2(player.position.x - WIDTH/2, player.position.y - HEIGHT/2)
         screen.fill((30,35,50))
-        navmesh.draw(screen)
-        castle.draw(screen)
-        player.draw(screen)
+        castle.draw(screen, camera)
+        player.draw(screen, camera)
         pygame.display.flip()
     pygame.quit()
 

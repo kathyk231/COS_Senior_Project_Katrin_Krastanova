@@ -7,7 +7,7 @@ class Player:
         self.radius = 7
         self.state = state
 
-    def update(self, dt, navmesh):
+    def update(self, dt, navmesh= None):
         keys = pygame.key.get_pressed()
         direction = pygame.Vector2(0, 0)
         if keys[pygame.K_w] or keys[pygame.K_UP]:
@@ -22,7 +22,8 @@ class Player:
             return
         direction = direction.normalize()
         new_position = (self.position + direction * self.speed * dt)
-        if navmesh.is_walkable(new_position):
-            self.position = new_position
-    def draw(self, surface):
-        pygame.draw.circle(surface, (165, 0, 0), self.position, self.radius)
+        #if navmesh.is_walkable(new_position):
+        self.position = new_position
+    def draw(self, surface, camera):
+        screen_position = (self.position.x - camera.x, self.position.y - camera.y)
+        pygame.draw.circle(surface, (165, 0, 0), (int(screen_position[0]),int(screen_position[1])), self.radius)

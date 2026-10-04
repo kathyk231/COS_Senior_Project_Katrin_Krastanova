@@ -13,7 +13,7 @@ def main():
     pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
     player_state = PlayerState(Role.ROYAL)
-    player = Player((600, 350), player_state)
+    player = Player((800, 600), player_state)
     castle = Castle()
     navmesh = NavmeshManager()
     navmesh.bake(castle.rooms)

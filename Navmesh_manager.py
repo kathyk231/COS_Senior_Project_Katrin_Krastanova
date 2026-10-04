@@ -14,21 +14,17 @@ class NavmeshManager:
             rect = room["rect"]
             start_index= len(vertices)
             vertices.extend([(rect.left,0,rect.top), (rect.right,0,rect.top),(rect.right,0,rect.bottom), (rect.left, 0,rect.bottom)])
-            polygons.append([start_index,start_index+1,start_index+2,start_index+2 ])
-            passage_left = 1740
-            passage_right = 1780
-            passage_top =990
-            passage_bottom= 1456
-            vertices.extend([(passage_left,0,passage_top),(passage_right,0,passage_top),(passage_right,0,passage_bottom),(passage_left,0,passage_bottom)])
-            polygons.append([start_index, start_index + 1, start_index + 2, start_index + 2])
+            polygons.append([start_index,start_index+1,start_index+2,start_index+3])
+        passage_left = 1740
+        passage_right = 1780
+        passage_top =990
+        passage_bottom= 1456
+        start_index= len(vertices)
+        vertices.extend([(passage_left,0,passage_top),(passage_right,0,passage_top),(passage_right,0,passage_bottom),(passage_left,0,passage_bottom)])
+        polygons.append([start_index, start_index + 1, start_index + 2, start_index + 3])
         baker = navmesh_baker.NavmeshBaker()
         baker.add_geometry(vertices,polygons)
-        baker.bake(
-            cell_size=5,
-            cell_height=5,
-            agent_height=14,
-            agent_radius=7
-        )
+        baker.bake()
         self.vertices,self.polygons = (baker.get_polygonization())
         self.pathfinder = pf.PathFinder(self.vertices, self.polygons)
     def draw(self, screen,camera):
@@ -46,7 +42,7 @@ class NavmeshManager:
                 pygame.draw.lines(screen,(107, 44, 255), True, points,2)
     def is_walkable(self, position):
         if self.pathfinder is None:
-            return True
+            return False
         point = (position.x, 0, position.y)
         result = self.pathfinder.sample(point)
         return result is not None

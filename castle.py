@@ -8,6 +8,7 @@ class Castle:
         self.height = 2000
         self.rooms = []
         self.doors = []
+        self.passage =[pygame.Rect(1740, 990, 40, 466)]
         self.create_castle()
         self.create_doors()
 
@@ -49,11 +50,13 @@ class Castle:
                       Door("Hidden passage - Stable", (1760, 1456), [Role.ROYAL, Role.SERVANT])
 
                       ]
-    def draw(self, screen, camera):
+    def draw_rooms(self, screen, camera):
         for room in self.rooms:
             rect = room["rect"].move(-int(camera.x), -int(camera.y))
             pygame.draw.rect(screen,(230,230,230),rect)
             pygame.draw.rect(screen,(255, 118, 189),rect,3)
+
+    def draw_doors(self, screen, camera):
         for door in self.doors:
             x = door.position[0] - camera.x
             y = door.position[1] - camera.y
@@ -62,3 +65,8 @@ class Castle:
             else:
                 color =(0,50,255)
             pygame.draw.circle(screen,color,(int(x),int(y)),7)
+
+    def interact(self, player):
+        nearest = min(self.doors, key=lambda d: player.position.distance_to(d.position))
+        if player.position.distance_to(nearest.position) <=50:
+            nearest.open_door(player.state.role)

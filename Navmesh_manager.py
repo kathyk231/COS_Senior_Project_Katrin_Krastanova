@@ -1,49 +1,50 @@
 import pygame
 import pathfinder as pf
 from pathfinder import navmesh_baker
-
+WALL =12
+DOOR_GAP=56
 class NavmeshManager:
     def __init__(self):
-        self.vertices = []
-        self.polygons = []
+        self.areas = []
+        self.walls = []
+        self.openings = []
         self.pathfinder = None
-    def bake(self, rooms):
-        vertices = []
-        polygons = []
+    def bake(self, rooms, doors, passages):
+        self.areas = [r["rect"] for r in rooms] +list(passages)
+        self.walls =[]
+        h = WALL//2
         for room in rooms:
             rect = room["rect"]
-            start_index= len(vertices)
-            vertices.extend([(rect.left,0,rect.top), (rect.left, 0,rect.bottom),(rect.right,0,rect.top),(rect.right,0,rect.bottom)])
-            polygons.append([start_index,start_index+1,start_index+2,start_index+3])
-        passage_left = 1740
-        passage_right = 1780
-        passage_top =990
-        passage_bottom= 1456
-        start_index= len(vertices)
-        vertices.extend([(passage_left,0,passage_top),(passage_left,0,passage_bottom),(passage_right,0,passage_top),(passage_right,0,passage_bottom)])
-        polygons.append([start_index, start_index + 1, start_index + 2, start_index + 3])
-        baker = navmesh_baker.NavmeshBaker()
-        baker.add_geometry(vertices,polygons)
-        baker.bake()
-        self.vertices,self.polygons = (baker.get_polygonization())
-        self.pathfinder = pf.PathFinder(self.vertices, self.polygons)
-    def draw(self, screen,camera):
-        if self.pathfinder is None:
-            return
-        for polygon in self.polygons:
-            points = []
-            for vertex_index in polygon:
-                vertex = self.vertices[vertex_index]
-                x = vertex[0] - camera.x
-                y = vertex[2] - camera.y
-                points.append((int(x),int(y)))
-            if len(points) >= 3:
-                pygame.draw.polygon(screen,(255,255,206),points)
-                pygame.draw.lines(screen,(107, 44, 255), True, points,2)
+            self.walls += [pygame.Rect(rect.left - h, rect.top - h, rect.width + WALL,WALL),
+                           pygame.Rect(rect.left -h, rect.bottom -h, rect.width + WALL,WALL),
+                           pygame.Rect(rect.left-h, rect.top-h,WALL, rect.height + WALL),
+                           pygame.Rect(rect.right-h,rect.top-h, WALL, rect.height + WALL)]
+
+        self.openings = []
+        for door in doors:
+            x,y = door.position
+            r = pygame.Rect(0,0,DOOR_GAP,DOOR_GAP)
+            r.center = x,y
+            self.openings.append((door,r))
+
     def is_walkable(self, position):
-        if self.pathfinder is None:
+        point = (position.x, position.y)
+        if not any(a.collidepoint(point) for a in self.areas):
             return False
-        point = (position.x, 0, position.y)
-        result = self.pathfinder.sample(point)
-        return result is not None
+        if any(w.collidepoint(point) for w in self.walls):
+            return any(d.is_open and r.collidepoint(point) for d,r in self.openings)
+        return True
+
+    def draw(self, screen,camera):
+        off =(-int(camera.x),-int(camera.y))
+
+        for w in self.walls:
+            pygame.draw.rect(screen,(70,60,90), w.move(off))
+        for door,rect in self.openings:
+            if door.is_open:
+                for a in self.areas:
+                    c = rect.clip(a)
+                    if c.width>0 and c.height>0:
+                        pygame.draw.rect(screen,(230,230,230), c.move(off))
+
 

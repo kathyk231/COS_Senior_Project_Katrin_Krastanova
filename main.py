@@ -26,6 +26,7 @@ def main():
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_e:
                 castle.interact(player)
         player.update(dt,navmesh)
+        navmesh.update_doors(dt,[(player.position,player.radius)])
         camera = pygame.Vector2(player.position.x - WIDTH/2, player.position.y - HEIGHT/2)
         screen.fill((30,35,50))
         castle.draw_rooms(screen, camera)

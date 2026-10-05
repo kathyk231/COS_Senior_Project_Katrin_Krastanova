@@ -26,7 +26,14 @@ class NavmeshManager:
             r = pygame.Rect(0,0,DOOR_GAP,DOOR_GAP)
             r.center = x,y
             self.openings.append((door,r))
-
+    def update_doors(self,dt,blocks):
+        for door,rect in self.openings:
+            blocked = False
+            for position, radius in blocks:
+                if rect.inflate(radius*2,radius*2).collidepoint(position.x,position.y):
+                    blocked = True
+                    break
+            door.update(dt,blocked)
     def is_walkable(self, position):
         point = (position.x, position.y)
         if not any(a.collidepoint(point) for a in self.areas):

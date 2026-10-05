@@ -16,18 +16,21 @@ def main():
     player = Player((800, 600), player_state)
     castle = Castle()
     navmesh = NavmeshManager()
-    navmesh.bake(castle.rooms)
+    navmesh.bake(castle.rooms, castle.doors, castle.passage)
     running = True
     while running:
         dt = clock.tick(FPS)/1000.0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_e:
+                castle.interact(player)
         player.update(dt,navmesh)
         camera = pygame.Vector2(player.position.x - WIDTH/2, player.position.y - HEIGHT/2)
         screen.fill((30,35,50))
-        castle.draw(screen, camera)
+        castle.draw_rooms(screen, camera)
         navmesh.draw(screen, camera)
+        castle.draw_doors(screen, camera)
         player.draw(screen, camera)
         pygame.display.flip()
     pygame.quit()

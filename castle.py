@@ -8,45 +8,45 @@ class Castle:
         self.height = 2000
         self.rooms = []
         self.doors = []
-        self.passage =[pygame.Rect(1740, 990, 40, 466)]
+        self.passage =[pygame.Rect(1712, 992, 96, 464)]
         self.create_castle()
         self.create_doors()
 
     def create_castle(self):
         self.rooms =[
             {"name": "Great Hall/Throne Room",
-             "rect": pygame.Rect(588, 326,960, 664)},
+             "rect": pygame.Rect(588, 328,960, 664)},
             {"name": "Kings Bedroom",
-             "rect": pygame.Rect(1546, 326, 432, 664)},
+             "rect": pygame.Rect(1548, 328, 432, 664)},
             {"name": "Corridor",
-             "rect": pygame.Rect(3, 563, 587, 136)},
+             "rect": pygame.Rect(0, 564, 588, 136)},
             {"name": "Kitchen",
-             "rect": pygame.Rect(3, 1270, 587, 499)},
+             "rect": pygame.Rect(0, 1272, 588, 500)},
             {"name": "Queens Room",
-             "rect": pygame.Rect(3, 698, 587, 573)},
+             "rect": pygame.Rect(0, 700, 588, 572)},
             {"name": "Royal Room",
-             "rect": pygame.Rect(3, 5, 587, 560)},
+             "rect": pygame.Rect(0, 4, 588, 560)},
             {"name": "Stable",
-             "rect": pygame.Rect(1547,1456, 431, 541)},
+             "rect": pygame.Rect(1548,1456, 432, 544)},
             {"name": "Woods",
-             "rect": pygame.Rect(1976, 0, 623, 1997)},
+             "rect": pygame.Rect(1980, 0, 624, 2000)},
             {"name": "Entrance Hall",
-             "rect": pygame.Rect(588, 988, 961, 1009)},
+             "rect": pygame.Rect(588, 992, 960, 1008)},
             {"name": "Witch House",
-             "rect": pygame.Rect(2088, 0, 511, 478)}
+             "rect": pygame.Rect(2088, 0, 516, 480)}
         ]
     def create_doors(self):
-        self.doors = [Door("Kitchens door",(588,1450),[Role.SERVANT]),
-                      Door("Throne Room door",(1068, 989), [Role.ROYAL, Role.SERVANT]),
-                      Door("Royal Room door",(295, 563), [Role.ROYAL]),
-                      Door("Kings door",(1547,650), [Role.ROYAL]),
-                      Door("Queens Room door",(295, 698), [Role.ROYAL]),
-                      Door("Entrance hall main door", (1068, 1997), [Role.SERVANT, Role.ROYAL]),
-                      Door("Stable door", (1547, 1725), [Role.ROYAL, Role.SERVANT]),
-                      Door("Corridor door", (588, 630), [Role.ROYAL, Role.SERVANT]),
-                      Door("Woods entrance", (1976, 1870), [Role.ROYAL, Role.SERVANT]),
-                      Door("Witch house door", (2340, 478), [Role.ROYAL, Role.SERVANT]),
-                      Door("Hidden passage - Kings Room", (1760, 990), [Role.ROYAL, Role.SERVANT]),
+        self.doors = [Door("Kitchens door",(588,1448),[Role.SERVANT]),
+                      Door("Throne Room door",(1068, 992), [Role.ROYAL, Role.SERVANT]),
+                      Door("Royal Room door",(296, 564), [Role.ROYAL]),
+                      Door("Kings door",(1548,660), [Role.ROYAL]),
+                      Door("Queens Room door",(296, 700), [Role.ROYAL]),
+                      Door("Entrance hall main door", (1068, 2000), [Role.SERVANT, Role.ROYAL]),
+                      Door("Stable door", (1548, 1728), [Role.ROYAL, Role.SERVANT]),
+                      Door("Corridor door", (588, 632), [Role.ROYAL, Role.SERVANT]),
+                      Door("Woods entrance", (1980, 1872), [Role.ROYAL, Role.SERVANT]),
+                      Door("Witch house door", (2344, 480), [Role.ROYAL, Role.SERVANT]),
+                      Door("Hidden passage - Kings Room", (1760, 992), [Role.ROYAL, Role.SERVANT]),
                       Door("Hidden passage - Stable", (1760, 1456), [Role.ROYAL, Role.SERVANT])
 
                       ]
@@ -68,7 +68,7 @@ class Castle:
 
     def interact(self, player):
         nearest = min(self.doors, key=lambda d: player.position.distance_to(d.position))
-        if player.position.distance_to(nearest.position) <=50:
+        if player.position.distance_to(nearest.position) <=80:
             nearest.open_door(player.state.role)
 
     def room_at(self, position):
@@ -76,7 +76,7 @@ class Castle:
         for room in reversed(self.rooms):
             if room["rect"].collidepoint(position):
                 return room["name"]
-            for passage in self.passage:
-                if passage.collidepoint(position):
-                    return "Hidden Passage"
+        for passage in self.passage:
+            if passage.collidepoint(position):
+                return "Hidden Passage"
         return None

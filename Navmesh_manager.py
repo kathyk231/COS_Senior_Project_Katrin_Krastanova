@@ -1,8 +1,8 @@
 import pygame
 import pathfinder as pf
 from pathfinder import navmesh_baker
-WALL =12
-DOOR_GAP=56
+WALL =16
+DOOR_GAP=96
 class NavmeshManager:
     def __init__(self):
         self.areas = []

@@ -10,6 +10,8 @@ class Character:
         self.radius = 7
         self.color = (165, 0,0 )
         self.inventory = Inventory()
+        self.flags = set()
+        self.room = None
 
     def can_stand(self, position, navmesh):
         r = self.radius
@@ -32,3 +34,9 @@ class Character:
     def draw(self, surface, camera):
         screen_position = (self.position.x - camera.x, self.position.y - camera.y)
         pygame.draw.circle(surface, self.color, (int(screen_position[0]), int(screen_position[1])), self.radius)
+    def update_room(self, castle):
+        self.room = castle.room_at(self.position)
+    def set_flag(self,flag):
+        self.flags.add(flag)
+    def has_flag(self,flag):
+        return flag in self.flags

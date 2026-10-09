@@ -70,3 +70,13 @@ class Castle:
         nearest = min(self.doors, key=lambda d: player.position.distance_to(d.position))
         if player.position.distance_to(nearest.position) <=50:
             nearest.open_door(player.state.role)
+
+    def room_at(self, position):
+        position = (position.x, position.y)
+        for room in reversed(self.rooms):
+            if room["rect"].collidepoint(position):
+                return room["name"]
+            for passage in self.passage:
+                if passage.collidepoint(position):
+                    return "Hidden Passage"
+        return None

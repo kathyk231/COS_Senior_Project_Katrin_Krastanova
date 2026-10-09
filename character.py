@@ -40,3 +40,10 @@ class Character:
         self.flags.add(flag)
     def has_flag(self,flag):
         return flag in self.flags
+    def facts(self):
+        data = {"role":self.state.role.value, "room":self.room}
+        for item in self.inventory.names():
+            data["has_"+item]= True
+        for flag in self.flags:
+            data[flag]= True
+        return data

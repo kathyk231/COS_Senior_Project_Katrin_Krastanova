@@ -12,8 +12,9 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
-    player_state = PlayerState(Role.ROYAL)
+    player_state = PlayerState(Role.SERVANT)
     player = Player((800, 600), player_state)
+    characters = [player]
     castle = Castle()
     navmesh = NavmeshManager()
     navmesh.bake(castle.rooms, castle.doors, castle.passage)
@@ -26,15 +27,17 @@ def main():
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_e:
                 castle.interact(player)
         player.update(dt,navmesh)
-        navmesh.update_doors(dt,[(player.position,player.radius)])
-        player.update_room(castle)
+        navmesh.update_doors(dt,[(c.position,c.radius) for c in characters])
+        for c in characters:
+            c.update_room(castle)
         camera = pygame.Vector2(player.position.x - WIDTH/2, player.position.y - HEIGHT/2)
         screen.fill((30,35,50))
         castle.draw_rooms(screen, camera)
         navmesh.draw(screen, camera)
         castle.draw_doors(screen, camera)
-        player.draw(screen, camera)
-        hud = f"{player.state.role.value.upper()} | Room: {player.room} | Items: {','.joiin(player.inventory.names()) or '-'}"
+        for c in characters:
+            c.draw(screen, camera)
+        hud = f"{player.state.role.value.upper()} | Room: {player.room} | Items: {','.join(player.inventory.names()) or '-'}"
         screen.blit(font.render(hud,True,(255,255,255)),(10,10))
         pygame.display.flip()
     pygame.quit()

@@ -25,6 +25,9 @@ def main():
                 running = False
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_e:
                 castle.interact(player)
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_g:
+                player.inventory.add_item("smt")
+                print(player.inventory)
         player.update(dt,navmesh)
         navmesh.update_doors(dt,[(player.position,player.radius)])
         camera = pygame.Vector2(player.position.x - WIDTH/2, player.position.y - HEIGHT/2)

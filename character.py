@@ -1,4 +1,5 @@
 import pygame
+from inventory import Inventory
 
 class Character:
     def __init__(self,name,  position, state):
@@ -8,6 +9,7 @@ class Character:
         self.speed = 170
         self.radius = 7
         self.color = (165, 0,0 )
+        self.inventory = Inventory()
 
     def can_stand(self, position, navmesh):
         r = self.radius

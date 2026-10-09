@@ -7,7 +7,7 @@ class Inventory:
         self.items[item] = self.items.get(item, 0) + amount
     def has(self, item, amount=1):
         return self.items.get(item, 0) >= amount
-    def remove_item(self, item, amount=-1):
+    def remove_item(self, item, amount=1):
         if not self.has(item, amount):
             return False
         self.items[item] -= amount

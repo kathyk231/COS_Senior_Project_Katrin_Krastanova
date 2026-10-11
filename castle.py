@@ -86,3 +86,10 @@ class Castle:
     def draw_interactable(self, screen, camera):
         for interactable in self.interactable:
             interactable.draw(screen, camera)
+    def nearest_interactable(self, character, reach=60):
+        best, best_distance = None, reach
+        for interactable in self.interactable:
+            d = interactable.distance_to(character.position)
+            if d <= best_distance:
+                best, best_distance = interactable, d
+        return best

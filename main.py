@@ -12,8 +12,8 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
-    player_state = PlayerState(Role.SERVANT)
-    player = Player((1068, 1990), player_state)
+    player_state = PlayerState(Role.ROYAL)
+    player = Player((800, 600), player_state)
     characters = [player]
     castle = Castle()
     navmesh = NavmeshManager()
@@ -40,6 +40,10 @@ def main():
             c.draw(screen, camera)
         hud = f"{player.state.role.value.upper()} | Room: {player.room} | Items: {','.join(player.inventory.names()) or '-'}"
         screen.blit(font.render(hud,True,(255,255,255)),(10,10))
+        obj = castle.nearest_interactable(player)
+        if obj:
+            message = font.render(f"Click E to search:{obj.name} ", True, (255,255,0))
+            screen.blit(message,(WIDTH//2 - message.get_width()//2,HEIGHT-60))
         pygame.display.flip()
     pygame.quit()
 

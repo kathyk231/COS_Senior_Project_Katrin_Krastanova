@@ -13,7 +13,7 @@ def main():
     pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
     player_state = PlayerState(Role.SERVANT)
-    player = Player((800, 600), player_state)
+    player = Player((1068, 1990), player_state)
     characters = [player]
     castle = Castle()
     navmesh = NavmeshManager()
@@ -34,6 +34,7 @@ def main():
         screen.fill((30,35,50))
         castle.draw_rooms(screen, camera)
         navmesh.draw(screen, camera)
+        castle.draw_interactable(screen, camera)
         castle.draw_doors(screen, camera)
         for c in characters:
             c.draw(screen, camera)

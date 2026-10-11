@@ -1,6 +1,7 @@
 import pygame
 from door import Door
 from player_state import Role
+from interactable import Interactable
 
 class Castle:
     def __init__(self):
@@ -8,6 +9,7 @@ class Castle:
         self.height = 2000
         self.rooms = []
         self.doors = []
+        self.interactable = []
         self.passage =[pygame.Rect(1712, 992, 96, 464)]
         self.create_castle()
         self.create_doors()
@@ -35,6 +37,7 @@ class Castle:
             {"name": "Witch House",
              "rect": pygame.Rect(2088, 0, 516, 480)}
         ]
+        self.interactable = [Interactable("vanity", "Vanity",(40,40, 120, 60), "Royal Room")]
     def create_doors(self):
         self.doors = [Door("Kitchens door",(588,1448),[Role.SERVANT]),
                       Door("Throne Room door",(1068, 992), [Role.ROYAL, Role.SERVANT]),
@@ -80,3 +83,6 @@ class Castle:
             if passage.collidepoint(position):
                 return "Hidden Passage"
         return None
+    def draw_interactable(self, screen, camera):
+        for interactable in self.interactable:
+            interactable.draw(screen, camera)

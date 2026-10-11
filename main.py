@@ -42,7 +42,7 @@ def main():
         screen.blit(font.render(hud,True,(255,255,255)),(10,10))
         obj = castle.nearest_interactable(player)
         if obj:
-            message = font.render(f"Click E to search:{obj.name} ", True, (255,255,0))
+            message = font.render(f"Click E to search:{obj.name} ", True, (0,0,0))
             screen.blit(message,(WIDTH//2 - message.get_width()//2,HEIGHT-60))
         pygame.display.flip()
     pygame.quit()

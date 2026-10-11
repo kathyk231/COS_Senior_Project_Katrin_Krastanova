@@ -13,7 +13,7 @@ class Interactable:
         cy = max(self.rect.top, min(position.y, self.rect.bottom))
         return pygame.Vector2(cx,cy).distance_to(position)
     def draw(self, surface, camera):
-        r = self.rect.move(-int(camera.x), int(camera.y))
+        r = self.rect.move(-int(camera.x), -int(camera.y))
         if self.sprite:
             surface.blit(self.sprite, r)
         else:

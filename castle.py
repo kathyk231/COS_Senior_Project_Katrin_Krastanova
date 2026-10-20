@@ -37,7 +37,8 @@ class Castle:
             {"name": "Witch House",
              "rect": pygame.Rect(2088, 0, 516, 480)}
         ]
-        self.interactable = [Interactable("vanity", "Vanity",(40,40, 120, 60), "Royal Room")]
+        self.interactable = [Interactable("vanity", "Vanity",(40,40, 120, 60), "Royal Room",
+                                          gives = "jewelry", found_text="You find jewelry in the vanity.",empty_text="This vanity is empty.")]
     def create_doors(self):
         self.doors = [Door("Kitchens door",(588,1448),[Role.SERVANT]),
                       Door("Throne Room door",(1068, 992), [Role.ROYAL, Role.SERVANT]),
@@ -69,14 +70,14 @@ class Castle:
                 color =(0,50,255)
             pygame.draw.circle(screen,color,(int(x),int(y)),7)
 
-    def interact(self, player, character, door_reach=50, obj_reach = 30):
+    def interact(self, character, door_reach=50, obj_reach = 30):
         pos = character.position
-        door = min(self.doors, key=lambda d: player.pos.distance_to(d.position))
+        door = min(self.doors, key=lambda d: pos.distance_to(d.position))
         d_door = pos.distance_to(door.position)
         obj = self.nearest_interactable(character, obj_reach)
         if obj and (d_door > door_reach or obj.distance_to(pos) <= d_door):
             return obj.search(character)
-        if d_door < door_reach
+        if d_door < door_reach:
             if door.locked:
                 return "The door is locked."
             if not door.open_door(character.state.role):

@@ -23,7 +23,7 @@ class Interactable:
             if self.looted:
                 return self.empty_text
             self.looted = True
-            character.inventory.add(self.gives)
+            character.inventory.add_item(self.gives)
             character.set_flag(flag)
             return self.found_text
         character.set_flag(flag)

@@ -17,5 +17,5 @@ class MessageLog:
             return
         img = self.font.render(self.text,True,(0,0,0))
         box = img.get_rect(center = (surface.get_width()//2,surface.get_height()-25))
-        pygame.draw.rect(surface,(0,0,0),box.inflate(24,12))
+        pygame.draw.rect(surface,(255,255,255),box.inflate(24,12))
         surface.blit(img,box)

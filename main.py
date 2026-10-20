@@ -3,6 +3,7 @@ from player import Player
 from player_state import PlayerState, Role
 from castle import Castle
 from Navmesh_manager import NavmeshManager
+from ui import MessageLog
 
 WIDTH, HEIGHT, FPS = 960, 540, 60
 
@@ -16,6 +17,7 @@ def main():
     player = Player((800, 600), player_state)
     characters = [player]
     castle = Castle()
+    messages = MessageLog(font)
     navmesh = NavmeshManager()
     navmesh.bake(castle.rooms, castle.doors, castle.passage)
     running = True
@@ -25,8 +27,11 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_e:
-                castle.interact(player)
+                text = castle.interact(player)
+                if text:
+                    messages.say(text)
         player.update(dt,navmesh)
+        messages.update(dt)
         navmesh.update_doors(dt,[(c.position,c.radius) for c in characters])
         for c in characters:
             c.update_room(castle)
@@ -34,6 +39,7 @@ def main():
         screen.fill((30,35,50))
         castle.draw_rooms(screen, camera)
         navmesh.draw(screen, camera)
+        messages.draw(screen)
         castle.draw_interactable(screen, camera)
         castle.draw_doors(screen, camera)
         for c in characters:

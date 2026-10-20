@@ -69,10 +69,19 @@ class Castle:
                 color =(0,50,255)
             pygame.draw.circle(screen,color,(int(x),int(y)),7)
 
-    def interact(self, player):
-        nearest = min(self.doors, key=lambda d: player.position.distance_to(d.position))
-        if player.position.distance_to(nearest.position) <=80:
-            nearest.open_door(player.state.role)
+    def interact(self, player, character, door_reach=50, obj_reach = 30):
+        pos = character.position
+        door = min(self.doors, key=lambda d: player.pos.distance_to(d.position))
+        d_door = pos.distance_to(door.position)
+        obj = self.nearest_interactable(character, obj_reach)
+        if obj and (d_door > door_reach or obj.distance_to(pos) <= d_door):
+            return obj.search(character)
+        if d_door < door_reach
+            if door.locked:
+                return "The door is locked."
+            if not door.open_door(character.state.role):
+                return "This door is not for you."
+        return None
 
     def room_at(self, position):
         position = (position.x, position.y)

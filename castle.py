@@ -2,6 +2,7 @@ import pygame
 from door import Door
 from player_state import Role
 from interactable import Interactable
+from create_interactables import create_interactables
 
 class Castle:
     def __init__(self):
@@ -9,7 +10,7 @@ class Castle:
         self.height = 2000
         self.rooms = []
         self.doors = []
-        self.interactable = []
+        self.interactable = create_interactables()
         self.passage =[pygame.Rect(1712, 992, 96, 464)]
         self.create_castle()
         self.create_doors()
@@ -37,8 +38,6 @@ class Castle:
             {"name": "Witch House",
              "rect": pygame.Rect(2088, 0, 516, 480)}
         ]
-        self.interactable = [Interactable("vanity", "Vanity",(40,40, 120, 60), "Royal Room",
-                                          gives = "jewelry", found_text="You find jewelry in the vanity.",empty_text="This vanity is empty.")]
     def create_doors(self):
         self.doors = [Door("Kitchens door",(588,1448),[Role.SERVANT]),
                       Door("Throne Room door",(1068, 992), [Role.ROYAL, Role.SERVANT]),

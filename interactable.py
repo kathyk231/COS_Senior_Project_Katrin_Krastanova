@@ -1,6 +1,6 @@
 import pygame
 class Interactable:
-    def __init__(self, id, name, rect, room, verb ="Search", gives = None, found_text = "You find nothing.", empty_text = "There is nothing more here.", color = (150,60,100)):
+    def __init__(self, id, name, rect, room, verb ="Search", gives = None, found_text = "You find nothing.", empty_text = "There is nothing more here.", color = (150,60,100), solid= True):
         self.id = id
         self.name = name
         self.rect = pygame.Rect(rect)
@@ -12,6 +12,7 @@ class Interactable:
         self.looted = False
         self.color = color
         self.sprite = None
+        self.solid = solid
 
     def distance_to(self, position):
         cx = max(self.rect.left, min(position.x, self.rect.right))

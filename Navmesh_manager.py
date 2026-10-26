@@ -1,6 +1,5 @@
 import pygame
-import pathfinder as pf
-from pathfinder import navmesh_baker
+
 WALL =16
 DOOR_GAP=64
 class NavmeshManager:
@@ -8,8 +7,10 @@ class NavmeshManager:
         self.areas = []
         self.walls = []
         self.openings = []
-        self.pathfinder = None
-    def bake(self, rooms, doors, passages):
+        self.solids = []
+        self.color = (0,0,0)
+    def bake(self, rooms, doors, passages,solids=()):
+        self.solids = list(solids)
         self.areas = [r["rect"] for r in rooms] +list(passages)
         self.walls =[]
         h = WALL//2
@@ -38,10 +39,11 @@ class NavmeshManager:
         point = (position.x, position.y)
         if not any(a.collidepoint(point) for a in self.areas):
             return False
+        if any(s.collidepoint(point) for s in self.solids):
+            return False
         if any(w.collidepoint(point) for w in self.walls):
             return any(d.is_open and r.collidepoint(point) for d,r in self.openings)
         return True
-
     def draw(self, screen,camera):
         off =(-int(camera.x),-int(camera.y))
 

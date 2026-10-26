@@ -19,7 +19,8 @@ def main():
     castle = Castle()
     messages = MessageLog(font)
     navmesh = NavmeshManager()
-    navmesh.bake(castle.rooms, castle.doors, castle.passage)
+    solids = [o.rect for o in castle.interactable if o.solid]
+    navmesh.bake(castle.rooms, castle.doors, castle.passage,solids)
     running = True
     while running:
         dt = clock.tick(FPS)/1000.0

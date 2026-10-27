@@ -1,6 +1,7 @@
 import pygame
+from sprites import load_sprite
 class Interactable:
-    def __init__(self, id, name, rect, room, verb ="Search", gives = None, found_text = "You find nothing.", empty_text = "There is nothing more here.", color = (150,60,100), solid= True):
+    def __init__(self, id, name, rect, room, verb ="Search", gives = None, found_text = "You find nothing.", empty_text = "There is nothing more here.", color = (150,60,100), solid= True, sprite=None):
         self.id = id
         self.name = name
         self.rect = pygame.Rect(rect)
@@ -11,7 +12,7 @@ class Interactable:
         self.empty_text = empty_text
         self.looted = False
         self.color = color
-        self.sprite = None
+        self.sprite = load_sprite(sprite) if isinstance(sprite,str) else sprite
         self.solid = solid
 
     def distance_to(self, position):
@@ -32,7 +33,7 @@ class Interactable:
     def draw(self, surface, camera):
         r = self.rect.move(-int(camera.x), -int(camera.y))
         if self.sprite:
-            surface.blit(self.sprite, r)
+            surface.blit(self.sprite, (r.x, r.bottom - self.sprite.get_height()))
         else:
             pygame.draw.rect(surface, self.color, r)
             pygame.draw.rect(surface, (60,40,20), r, 2)

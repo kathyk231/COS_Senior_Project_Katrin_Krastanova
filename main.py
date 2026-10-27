@@ -47,6 +47,7 @@ def main():
         castle.draw_doors(screen, camera)
         for c in characters:
             c.draw(screen, camera)
+        messages.draw(screen)
         hud = f"{player.state.role.value.upper()} | Room: {player.room} | Items: {','.join(player.inventory.names()) or '-'}"
         screen.blit(font.render(hud,True,(255,255,255)),(10,10))
         obj = castle.nearest_interactable(player)

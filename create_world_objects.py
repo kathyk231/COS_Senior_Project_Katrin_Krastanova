@@ -14,5 +14,9 @@ def create_interactables():
 def create_props():
     P = Prop
     return[
-        P("royal_bed", (8,12,184,264), "Royal Room")
+        P("carpet",(160,200,240,240),"Royal Room",color=(132,37,197),solid= False),
+        P("royal_bed", (8,12,184,264), "Royal Room",sprite="bed"),
+        P("couch",(8,360,64,196), "Royal Room"),
+        P("recliner",(104,480,80,76), "Royal Room"),
+        P("table",(104,320,80,120), "Royal Room")
     ]

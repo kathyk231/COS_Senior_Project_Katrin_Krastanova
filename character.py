@@ -7,7 +7,7 @@ class Character:
         self.position = pygame.Vector2(position)
         self.state = state
         self.speed = 170
-        self.radius = 8
+        self.radius = 24
         self.color = (165, 0,0 )
         self.inventory = Inventory()
         self.flags = set()

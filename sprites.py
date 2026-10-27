@@ -11,7 +11,7 @@ def load_image(folder, name, scale=SCALE):
     path = os.path.join(BASE, "assets", folder, name + ".png")
     img = None
     if os.path.exists(path):
-        img = pygame.image.load(path)
+        img = pygame.image.load(path).convert_alpha()
         if scale != 1:
             img = pygame.transform.scale(img, (int(img.get_width()*scale), int(img.get_height()*scale)))
     _cache[key] = img

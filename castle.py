@@ -2,7 +2,7 @@ import pygame
 from door import Door
 from player_state import Role
 from interactable import Interactable
-from create_interactables import create_interactables
+from create_world_objects import create_interactables, create_props
 
 class Castle:
     def __init__(self):
@@ -11,6 +11,7 @@ class Castle:
         self.rooms = []
         self.doors = []
         self.interactable = create_interactables()
+        self.props = create_props()
         self.passage =[pygame.Rect(1712, 992, 96, 464)]
         self.create_castle()
         self.create_doors()
@@ -102,3 +103,6 @@ class Castle:
             if d <= best_distance:
                 best, best_distance = interactable, d
         return best
+    def draw_prop(self,screen,camera):
+        for prop in self.props:
+            prop.draw(screen, camera)

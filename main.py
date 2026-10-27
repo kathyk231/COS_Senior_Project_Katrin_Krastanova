@@ -20,6 +20,7 @@ def main():
     messages = MessageLog(font)
     navmesh = NavmeshManager()
     solids = [o.rect for o in castle.interactable if o.solid]
+    solids += [p.rect for p in castle.props if p.solid]
     navmesh.bake(castle.rooms, castle.doors, castle.passage,solids)
     running = True
     while running:
@@ -41,6 +42,7 @@ def main():
         castle.draw_rooms(screen, camera)
         navmesh.draw(screen, camera)
         messages.draw(screen)
+        castle.draw_prop(screen, camera)
         castle.draw_interactable(screen, camera)
         castle.draw_doors(screen, camera)
         for c in characters:

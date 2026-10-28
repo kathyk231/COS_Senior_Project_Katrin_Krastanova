@@ -17,7 +17,11 @@ def create_interactables():
     I("nightstand","Queens nightstand",(504,1064,76,80),"Queens Room", gives= "queens_ring",
       found_text="You find the Queens ring.", empty_text="You searched this already."),
     I("vanity","Queens vanity",(232,1226,124,40),"Queens Room",
-      found_text="There is nothing useful here")
+      found_text="There is nothing useful here"),
+    I("cabinet","Kitchen Cabinet",(8,1352,72, 160),"Kitchen", verb="Open",
+      found_text="You take a wine cup.", empty_text="You do not need more cups."),
+    I("barrel","Wine barrel", (516,1548,64, 84),"Kitchen", verb= "Take wine", gives="wine",
+      found_text="You take a wine bottle", empty_text="You do not need more wine.")
     ]
 def create_props():
     P = Prop
@@ -51,8 +55,12 @@ def create_props():
         P("desk_chair", (96,780,28,44),"Queens Room"),
         P("bed",(304,900,276,164),"Queens Room",),
         P("nightstand", (504,820,76,80),"Queens Room"),
-        P("lamp_1",(524, 740, 44,44),"Queens Room"),
-        P("lamp_2",(524, 1182, 44,44),"Queens Room"),
+        P("lamp_1",(524, 740, 44,44),"Queens Room",sprite="lamp"),
+        P("lamp_2",(524, 1182, 44,44),"Queens Room",sprite="lamp"),
         P("vanity_chair",(276,1182,44,28),"Queens Room"),
-
+        P("kitchen_cabinet_1", (8, 1280, 572,72),"Kitchen"),
+        P("kitchen_cabinet_2", (8, 1694, 572, 72), "Kitchen"),
+        P("kitchen_cabinet_3",(8,1512,72, 184),"Kitchen"),
+        P("vegetable_basket", (526,1640, 44, 44), "Kitchen"),
+        P("table",(148,1432,284,164),"Kitchen"),
     ]

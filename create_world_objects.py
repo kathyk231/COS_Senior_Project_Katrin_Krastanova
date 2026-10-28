@@ -21,7 +21,15 @@ def create_interactables():
     I("cabinet","Kitchen Cabinet",(8,1352,72, 160),"Kitchen", verb="Open",
       found_text="You take a wine cup.", empty_text="You do not need more cups."),
     I("barrel","Wine barrel", (516,1548,64, 84),"Kitchen", verb= "Take wine", gives="wine",
-      found_text="You take a wine bottle", empty_text="You do not need more wine.")
+      found_text="You take a wine bottle", empty_text="You do not need more wine."),
+    I("pot_1", "Pot", (616,360, 44,44),"Throne Room","Dig",
+      found_text="There is nothing in this pot.", empty_text="You searched this already"),
+    I("pot_2", "Pot", (1476, 360,44,44), "Throne Room", "Dig", gives= "corridor_key",
+      found_text="There is a key in this pot, it looks like the Corridor key.", empty_text="You searched this already"),
+    I("pot_3", "Pot", (616, 920, 44, 44), "Throne Room", "Dig",
+        found_text="There is nothing in this pot.", empty_text="You searched this already"),
+    I("pot_4", "Pot", (1476, 920, 44, 44), "Throne Room", "Dig",
+          found_text="There is nothing in this pot.", empty_text="You searched this already"),
     ]
 def create_props():
     P = Prop
@@ -63,4 +71,13 @@ def create_props():
         P("kitchen_cabinet_3",(8,1512,72, 184),"Kitchen"),
         P("vegetable_basket", (526,1640, 44, 44), "Kitchen"),
         P("table",(148,1432,284,164),"Kitchen"),
+        P("carpet", (704,516,724,364),"Throne Room",solid=False),
+        P("podium",(792, 336,565,104),"Throne Room"),
+        P("throne",(1036,336,84,44),"Throne Room"),
+        P("pot_19", (684, 360, 20,20),"Throne Room", sprite="pot"),
+        P("pot_20", (1440, 360, 20, 20), "Throne Room", sprite="pot"),
+        P("pot_21", (684, 944, 20, 20), "Throne Room", sprite="pot"),
+        P("pot_21", (1440, 944, 20, 20), "Throne Room", sprite="pot"),
+        P("table",(824,596,484,204),"Throne Room"),
+
     ]

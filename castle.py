@@ -18,7 +18,7 @@ class Castle:
 
     def create_castle(self):
         self.rooms =[
-            {"name": "Great Hall/Throne Room",
+            {"name": "Throne Room",
              "rect": pygame.Rect(588, 328,960, 664)},
             {"name": "Kings Bedroom",
              "rect": pygame.Rect(1548, 328, 432, 664)},

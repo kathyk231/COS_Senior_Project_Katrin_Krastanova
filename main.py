@@ -13,8 +13,8 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
-    player_state = PlayerState(Role.SERVANT)
-    player = Player((800, 600), player_state)
+    player_state = PlayerState(Role.ROYAL)
+    player = Player((1500, 1700), player_state)
     characters = [player]
     castle = Castle()
     messages = MessageLog(font)
@@ -48,7 +48,7 @@ def main():
         for c in characters:
             c.draw(screen, camera)
         messages.draw(screen)
-        hud = f"{player.state.role.value.upper()} | Room: {player.room} | Items: {','.join(player.inventory.names()) or '-'}"
+        hud = f"{player.state.role.value.upper()} | Room: {player.room} |Position: {int(player.position.x)}/{int(player.position.y)} | Items: {','.join(player.inventory.names()) or '-'}"
         screen.blit(font.render(hud,True,(255,255,255)),(10,10))
         obj = castle.nearest_interactable(player)
         if obj:

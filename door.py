@@ -1,4 +1,3 @@
-import pygame
 
 class Door:
     AUTO_CLOSE_TIMER = 3.0

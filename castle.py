@@ -1,7 +1,6 @@
 import pygame
 from door import Door
 from player_state import Role
-from interactable import Interactable
 from create_world_objects import create_interactables, create_props
 
 class Castle:

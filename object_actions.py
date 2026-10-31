@@ -7,5 +7,5 @@ def reveal_passage(character, painting, world=None):
     character.set_flag("found_passage")
     king_side.open_door(character)
     if first_time:
-        return "The painting swings aside. A hidden passage is revealed. Click E to Open."
+        return "The painting swings aside. A hidden passage is revealed. Enter at your own risk."
     return "The passage is open."

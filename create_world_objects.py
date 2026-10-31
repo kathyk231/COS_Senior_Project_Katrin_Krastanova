@@ -1,5 +1,4 @@
 from interactable import Interactable
-from object_actions import reveal_passage
 from prop import Prop
 from crafting import brew_truth_serum,mix_spiked_wine
 from object_actions import reveal_passage
@@ -56,8 +55,8 @@ def create_interactables():
       found_text="There is a suspicious robe on the vanity chair."),
     I("king_carpet", "carpet", (1748,800,124, 84),"Kings Room", "Examine",gives= "blood_stain",
       found_text="There are blood stains on the carpet.", color=(132,37,197),solid=False),
-    I("painting", "Painting", (1722,944,76,32),"Kings Room", verb= "Move",
-      color=(90,60,130), solid=False, use= reveal_passage),
+    I("painting", "Painting", (1722,969,76,16),"Kings Room", verb= "Move",
+      color=(90,60,130), solid=False, use=reveal_passage),
     I("witch_cupboard_1","Cupboard", (2096,8,144,72),"Witch House",verb="Take",gives="fairy_dust",
       found_text="You take a vial of fairy dust.", empty_text="You do not need more fairy dust."),
     I("crate","Green Crate", (2256,8,164,72),"Witch House", verb="Take", gives="tooth_leaf",

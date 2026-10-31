@@ -1,6 +1,6 @@
 TRUTH_SERUM = ["potion_bottle","truth_berry", "light_essence","tooth_leaf","phoenix_feather"]
 SPIKED_WINE = ["truth_serum", "wine", "wine_cup"]
-def brew_truth_serum(character, cauldron):
+def brew_truth_serum(character, cauldron,world=None):
     if cauldron.looted:
         return "The cauldron is empty."
     missing = [i for i in TRUTH_SERUM if not character.inventory.has(i)]
@@ -14,7 +14,7 @@ def brew_truth_serum(character, cauldron):
     cauldron.looted = True
     return "The cauldron glows and sparkles. You put the serum in the bottle and take it. "
 
-def mix_spiked_wine(character, table):
+def mix_spiked_wine(character, kitchen_table, world=None):
     missing = [i for i in SPIKED_WINE if not character.inventory.has(i)]
     if missing:
         names =",".join(m.replace("_"," ") for m in missing)

@@ -40,18 +40,18 @@ class Castle:
              "rect": pygame.Rect(2088, 0, 516, 480)}
         ]
     def create_doors(self):
-        self.doors = [Door("Kitchens door",(588,1448),[Role.SERVANT]),
+        self.doors = [Door("Kitchens door",(588,1448),[], key="kitchen_key"),
                       Door("Throne Room door",(1068, 992), [Role.ROYAL, Role.SERVANT]),
-                      Door("Royal Room door",(296, 564), [Role.ROYAL]),
+                      Door("Royal Room door",(296, 564), [Role.ROYAL,Role.SERVANT]),
                       Door("Kings door",(1548,660), [Role.ROYAL]),
-                      Door("Queens Room door",(296, 700), [Role.ROYAL]),
+                      Door("Queens Room door",(296, 700), [Role.ROYAL,Role.SERVANT]),
                       Door("Entrance hall main door", (1068, 2000), [Role.SERVANT, Role.ROYAL]),
-                      Door("Stable door", (1548, 1728), [Role.ROYAL, Role.SERVANT]),
-                      Door("Corridor door", (588, 632), [Role.ROYAL, Role.SERVANT]),
+                      Door("Stable door", (1548, 1728), [Role.SERVANT],key="stable_key"),
+                      Door("Corridor door", (588, 632), [Role.ROYAL], key="corridor_key"),
                       Door("Woods entrance", (1980, 1872), [Role.ROYAL, Role.SERVANT]),
                       Door("Witch house door", (2344, 480), [Role.ROYAL, Role.SERVANT]),
-                      Door("Hidden passage - Kings Room", (1760, 992), [Role.ROYAL, Role.SERVANT]),
-                      Door("Hidden passage - Stable", (1760, 1456), [Role.ROYAL, Role.SERVANT])
+                      Door("Hidden passage - Kings Room", (1760, 992), [Role.ROYAL, Role.SERVANT],hidden=True),
+                      Door("Hidden passage - Stable", (1760, 1456), [Role.ROYAL, Role.SERVANT],hidden=True)
 
                       ]
     def draw_rooms(self, screen, camera):
@@ -62,6 +62,8 @@ class Castle:
 
     def draw_doors(self, screen, camera):
         for door in self.doors:
+            if door.hidden:
+                continue
             x = door.position[0] - camera.x
             y = door.position[1] - camera.y
             if door.is_open:
@@ -72,15 +74,18 @@ class Castle:
 
     def interact(self, character, door_reach=50, obj_reach = 30):
         pos = character.position
-        door = min(self.doors, key=lambda d: pos.distance_to(d.position))
+        visible=[d for d in self.doors if not d.hidden]
+        door = min(visible, key=lambda d: pos.distance_to(d.position))
         d_door = pos.distance_to(door.position)
         obj = self.nearest_interactable(character, obj_reach)
         if obj and (d_door > door_reach or obj.distance_to(pos) <= d_door):
-            return obj.search(character)
+            return obj.search(character,self)
         if d_door < door_reach:
             if door.locked:
                 return "The door is locked."
-            if not door.open_door(character.state.role):
+            if not door.open_door(character):
+                if door.key:
+                    return "This door is locked. You need the key."
                 return "This door is not for you."
         return None
 

@@ -20,9 +20,9 @@ class Interactable:
         cx = max(self.rect.left, min(position.x, self.rect.right))
         cy = max(self.rect.top, min(position.y, self.rect.bottom))
         return pygame.Vector2(cx,cy).distance_to(position)
-    def search(self,character):
+    def search(self,character,world=None):
         if self.use:
-            return self.use(character,self)
+            return self.use(character,self,world)
         flag = "searched_" + self.id
         if self.gives:
             if self.looted:

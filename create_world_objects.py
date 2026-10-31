@@ -1,6 +1,8 @@
 from interactable import Interactable
+from object_actions import reveal_passage
 from prop import Prop
 from crafting import brew_truth_serum,mix_spiked_wine
+from object_actions import reveal_passage
 def create_interactables():
     I = Interactable
     return [
@@ -30,8 +32,8 @@ def create_interactables():
       found_text="There is a key in this pot, it looks like the Corridor key.", empty_text="You searched this already"),
     I("pot_3", "Pot", (616, 920, 44, 44), "Throne Room", "Dig",
         found_text="There is nothing in this pot.", empty_text="You searched this already"),
-    I("pot_4", "Pot", (1476, 920, 44, 44), "Throne Room", "Dig",
-          found_text="There is nothing in this pot.", empty_text="You searched this already"),
+    I("pot_4", "Pot", (1476, 920, 44, 44), "Throne Room", "Dig", gives="stable_key",
+          found_text="You take the stable key.", empty_text="You searched this already"),
     I("weapon_cupboard", "Weapon Cupboard", (596,1000,232,72),"Entrance Hall", verb= "Open",
       found_text="There are only weapons here"),
     I("armor_cupboard","Armor Cupboard", (1304, 1000,236, 72),"Entrance Hall", verb= "Open", gives="kitchen_key",
@@ -54,6 +56,8 @@ def create_interactables():
       found_text="There is a suspicious robe on the vanity chair."),
     I("king_carpet", "carpet", (1748,800,124, 84),"Kings Room", "Examine",gives= "blood_stain",
       found_text="There are blood stains on the carpet.", color=(132,37,197),solid=False),
+    I("painting", "Painting", (1722,944,76,32),"Kings Room", verb= "Move",
+      color=(90,60,130), solid=False, use= reveal_passage),
     I("witch_cupboard_1","Cupboard", (2096,8,144,72),"Witch House",verb="Take",gives="fairy_dust",
       found_text="You take a vial of fairy dust.", empty_text="You do not need more fairy dust."),
     I("crate","Green Crate", (2256,8,164,72),"Witch House", verb="Take", gives="tooth_leaf",

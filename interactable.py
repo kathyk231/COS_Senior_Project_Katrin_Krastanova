@@ -1,8 +1,9 @@
 import pygame
 from sprites import load_sprite
 class Interactable:
-    def __init__(self, id, name, rect, room, verb ="Search", gives = None, found_text = "You find nothing.", empty_text = "There is nothing more here.", color = (150,60,100), solid= True, sprite=None):
+    def __init__(self, id, name, rect, room, verb ="Search", gives = None, found_text = "You find nothing.", empty_text = "There is nothing more here.", color = (150,60,100), solid= True, sprite=None, use=None):
         self.id = id
+        self.use = use
         self.name = name
         self.rect = pygame.Rect(rect)
         self.room = room
@@ -20,6 +21,8 @@ class Interactable:
         cy = max(self.rect.top, min(position.y, self.rect.bottom))
         return pygame.Vector2(cx,cy).distance_to(position)
     def search(self,character):
+        if self.use:
+            return self.use(character,self)
         flag = "searched_" + self.id
         if self.gives:
             if self.looted:

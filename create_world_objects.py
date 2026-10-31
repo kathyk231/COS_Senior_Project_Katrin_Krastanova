@@ -42,7 +42,37 @@ def create_interactables():
         found_text="You pick up a water bucket", empty_text="You do not need more water."),
     I("water_bucket_1", "Water", (1741, 1924, 40, 32), "Stable", "pick up", "water",
         found_text="You pick up a water bucket", empty_text="You do not need more water."),
-    ]
+    I("wardrobe", "King's Wardrobe", (1556,336, 232,64), "Kings Room", verb="Open",
+      found_text="There are no clothes missing from the wardrobe."),
+    I("bed", "King's Bed", (1704,564,268, 204), "Kings Room", verb="Inspect",
+      gives="ring",found_text="You find the King's ring under the bed. You take it.", empty_text="There is nothing else here"),
+    I("nightstand","King's nightstand", (1904,484, 68,80),"Kings Room", "Look","overturned_cup",
+      found_text="There is an empty overturned cup next to the nightstand. You inspect it, there are remnants of a purple liquid."),
+    I("vanity","Kings Vanity", (1556, 924, 152,60),"Kings Room", "Examine",
+      found_text="There is a suspicious robe on the vanity chair."),
+    I("carpet", "carpet", (1748,800,124, 84),"Kings Room", "Examine",gives= "blood_stain",
+      found_text="There are blood stains on the carpet.", color=(132,37,197),solid=False),
+    I("cupboard_1","Cupboard", (2096,8,144,72),"Witch House",verb="Take",gives="fairy dust",
+      found_text="You take a vial of fairy dust.", empty_text="You do not need more fairy dust."),
+    I("crate","Green Crate", (2256,8,164,72),"Witch House", verb="Take", gives="tooth_leaf",
+      found_text="You take one tooth leaf.", empty_text="You do not need more tooth leaf."),
+    I("cupboard", "Potion Bottle Cupboard",(2436,8,160,72),"Witch House", verb="Take", gives="potion_bottle",
+      found_text="You take a bottle.", empty_text="You do not need more bottles."),
+    I("pantry", "Pantry", (2096, 160, 64, 124),"Witch House", verb="Take", gives="light_essence",
+      found_text="You take a light essence.",empty_text="You do not need more light essence."),
+    I("box", "Bones", (2096,324,64, 44),"Witch House", verb="Take", gives= "bone",
+      found_text="You take a bone.",empty_text="You do not need more bones."),
+    I("cupboard_2", "Feather Rack", (2096,408,64, 64),"Witch House", verb="Take", gives= "feather",
+      found_text="You take a phoenix feather.", empty_text="You do not need more feathers."),
+    I("cupboard_3", "Spices", (2524, 160,72,124),"Witch House", verb="Take",gives="spice",
+      found_text="You take a spice.",empty_text="You do not need more spices."),
+    I("crate_2", "Gray Crate", (2524,324,72, 84),"Witch House", verb="Take", gives="truth_berry",
+      found_text="You take a truth berry.",empty_text="You do not need more truth berry."),
+    I("box_2", "Flowers", (2524, 408, 72, 64), "Witch House", verb="Take", gives="flower",
+      found_text="You take a forest flower.", empty_text="You do not need more."),
+    I("cauldron", "Cauldron",(2280,160,124,124),"Witch House", verb="Put",gives="truth_serum",
+      found_text="You take the truth serum."),
+   ]
 def create_props():
     P = Prop
     return[
@@ -105,5 +135,10 @@ def create_props():
         P("horse_pen_1",(1556,1464,152,192),"Stable"),
         P("horse_pen_2", (1821, 1464, 152, 192), "Stable"),
         P("horse_accessories", (1860,1684,112,132), "Stable"),
-
+        P("lamp_1_king", (1908,360, 44, 44),"Kings Room"),
+        P("carpet_1_king",(1588,481,124,364),"Kings Room",color=(132,37,197),solid=False),
+        P("nightstand", (1904,767,68,80),"Kings Room"),
+        P("lamp_2_king", (1908, 924, 44, 44), "Kings Room"),
+        P("carpet_2_king",(1748,448,124, 84),"Kings Room",color=(132,37,197),solid=False),
+        P("carpet", (2200,200,284,244),"Witch House",color=(132,37,197),solid=False)
     ]

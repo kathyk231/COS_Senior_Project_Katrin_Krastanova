@@ -1,6 +1,6 @@
 from player_state import Role
 EVIDENCE_ITEMS = ["overturned_cup", "empty_bottle", "suspicious_robe", "letters"]
-#COUP_REQUIREMENTS = ["buried_", + i for i in EVIDENCE_ITEMS]
+COUP_REQUIREMENTS = ["buried_" + i for i in EVIDENCE_ITEMS]
 
 def reveal_passage(character, painting, world=None):
     king_side=next(d for d in world.doors if d.name== "Hidden passage - Kings Room")
@@ -27,7 +27,7 @@ def evidence_action(clue_text, gone_text,take_text,item=None, needs=None, needs_
             character.inventory.remove_item(needs)
         obj.looted=True
         if item:
-            character.inventory.add(item)
+            character.inventory.add_item(item)
         character.set_flag("removed_" + obj.id)
         return take_text
     return use
@@ -47,3 +47,24 @@ def bury_evidence(character,spot, world=None):
         buried.append(item)
     return "You dig a hole and bury " + ", ".join(i.replace("_"," ") for i in carried) + "."
 
+def announce_king_death(character, podium, world=None):
+    if character.state.role != Role.ROYAL:
+        return "Only the Royal is allowed to address the Court."
+    if not character.inventory.has("kings_ring"):
+        return "Without the kings ring, nobody would believe you."
+    if character.has_flag("announce_king_death"):
+        return "You already addressed the court."
+    if any(not character.has_flag(f) for f in COUP_REQUIREMENTS):
+        return "You can't announce it yet, there is still evidence out there."
+    character.set_flag("announce_king_death")
+    return "You announce the kings death to the court."
+
+def sit_on_the_throne(character,seat,world=None):
+    if character.state.role != Role.ROYAL:
+        return "You may not sit on the throne."
+    if not character.has_flag("announce_king_death"):
+        return "First announce the kings death to the court on the podium."
+    if world.coronation:
+        return "You are already seated."
+    world.coronation = {"who": character, "left": world.CORONATION_TIME}
+    return "You sit on the throne. Stay beside it for 10 seconds to claim it."

@@ -35,6 +35,9 @@ def main():
                 if text:
                     messages.say(text)
         player.update(dt,navmesh)
+        text = castle.update(dt)
+        if text:
+            messages.say(text)
         messages.update(dt)
         navmesh.update_doors(dt,[(c.position,c.radius) for c in characters])
         for c in characters:
@@ -44,7 +47,6 @@ def main():
         screen.fill((30,35,50))
         castle.draw_rooms(screen, camera)
         navmesh.draw(screen, camera)
-        messages.draw(screen)
         castle.draw_prop(screen, camera)
         castle.draw_interactable(screen, camera)
         castle.draw_doors(screen, camera)
@@ -52,9 +54,12 @@ def main():
             c.draw(screen, camera)
         messages.draw(screen)
         hud = f"{player.state.role.value.upper()} | Room: {player.room} |Position: {int(player.position.x)}/{int(player.position.y)} | Items: {','.join(player.inventory.names()) or '-'}"
-        screen.blit(font.render(hud,True,(255,255,255)),(10,10))
-        log = font.render(f"Quest: {quest.title} - {quest.current_text()}", True, (255,255,255))
+        screen.blit(font.render(hud,True,(0,0,0)),(10,10))
+        log = font.render(f"Quest: {quest.title} - {quest.current_text()}", True, (0,0,0))
         screen.blit(log,(10,34))
+        if castle.coronation:
+            t = font.render(f"Coronation: {castle.coronation['left']:.0f}s",True,(0,0,0))
+            screen.blit(t,(WIDTH//2 - t.get_width()//2,40))
         obj = castle.nearest_interactable(player)
         if obj:
             message = font.render(f"Click E:{obj.verb} {obj.name} ", True, (0,0,0))

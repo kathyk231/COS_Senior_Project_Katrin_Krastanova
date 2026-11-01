@@ -1,7 +1,7 @@
 from interactable import Interactable
 from prop import Prop
 from crafting import brew_truth_serum,mix_spiked_wine
-from object_actions import reveal_passage, evidence_action, bury_evidence
+from object_actions import reveal_passage, evidence_action, bury_evidence, announce_king_death, sit_on_the_throne
 
 SCARCE_ITEMS = ["jewelry", "kings_ring", "queens_ring"]
 
@@ -86,7 +86,13 @@ def create_interactables():
     I("cauldron", "Cauldron",(2280,160,124,124),"Witch House", verb="Brew", use=brew_truth_serum),
     I("tool_rack", "Tool Rack", (1860,1684,112,132), "Stable", verb="Take", gives="spade",
       found_text="You take a spade.",empty_text="You do not need more spades."),
-    I("burial_spot", "Loose Soil", (2200,1500,80,80),"Woods", verb="Dig", color= (68,50,15), solid= False,use=bury_evidence),
+    I("burial_spot", "Loose Soil", (2095,630,40,40),"Woods", verb="Dig", color= (68,50,15), solid= False,use=bury_evidence),
+    I("podium_speech", "Podium",(860,396,160,44), "Throne Room", verb="Speak",
+      color=(170,140,50), solid=False,use=announce_king_death),
+    I("podium_speech_2", "Podium", (1144, 396, 160, 44), "Throne Room", verb="Speak",
+      color=(170, 140, 50), solid=False, use=announce_king_death),
+    I("throne_seat", "Throne Seat", (1036,396,84,44), "Throne Room", verb="Sit",
+      color=(170, 140, 50), solid=False, use=sit_on_the_throne)
    ]
     for o in objects:
         if o.gives and o.gives not in SCARCE_ITEMS:

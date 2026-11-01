@@ -4,11 +4,13 @@ from player_state import Role
 from create_world_objects import create_interactables, create_props
 
 class Castle:
+    CORONATION_TIME =10.0
     def __init__(self):
         self.width = 2604
         self.height = 2000
         self.rooms = []
         self.doors = []
+        self.coronation = None
         self.interactable = create_interactables()
         self.props = create_props()
         self.passage =[pygame.Rect(1712, 992, 96, 464)]
@@ -110,3 +112,18 @@ class Castle:
     def draw_prop(self,screen,camera):
         for prop in self.props:
             prop.draw(screen, camera)
+    def update(self,dt):
+        c = self.coronation
+        if c is None:
+            return None
+        seat = next(o for o in self.interactable if o.id == "throne_seat")
+        who = c["who"]
+        if seat.distance_to(who.position) > 60:
+            self.coronation = None
+            return "You left the throne. The coronation is cancelled."
+        c["left"] -= dt
+        if c["left"] <= 0:
+            self.coronation = None
+            who.set_flag("crowned")
+            return "You have been crowned to be the new king. Long live the King."
+        return None

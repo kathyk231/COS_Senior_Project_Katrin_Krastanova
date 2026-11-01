@@ -1,38 +1,40 @@
 class QuestManager:
     def __init__(self,quests):
         self.quests = quests
-        self.index = 0
         self.on_complete = None
     @property
     def finished(self):
-        return self.index >= len(self.quests)
-    @property
+        return all(q.complete for q in self.quests)
+
     def active(self):
-        return None if self.finished else self.quests[self.index]
+        done = {q.id for q in self.quests if q.complete}
+        return [q for q in self.quests if not q.complete and all(a in done for a in q.after)]
     def update(self,character):
-        if self.finished:
-            return
-        quest = self.quests[self.index]
-        quest.update(character)
-        if quest.complete:
-            if self.on_complete:
-                self.on_complete(quest)
-            self.index += 1
-            self.update(character)
+        changed = True
+        while changed:
+            changed = False
+            for quest in self.active():
+                quest.update(character)
+                if quest.complete:
+                    changed= True
+                    if self.on_complete:
+                        self.on_complete(quest)
 
 class QuestStep:
-    def __init__(self,text, required):
+    def __init__(self,text, required, alternatives = None):
         self.text = text
         self.required = required
+        self.options = [required] + (alternatives or [])
     def is_done(self,character):
         facts = character.facts()
-        return all(facts.get(key)== value for key, value in self.required.items())
+        return any(all(facts.get(key)== value for key, value in option.items()) for option in self.options)
 
 class Quest:
-    def __init__(self,id,title, steps):
+    def __init__(self,id,title, steps, after = None):
         self.id = id
         self.title = title
         self.steps = steps
+        self.after = after or []
         self.current=0
     @property
     def complete(self):

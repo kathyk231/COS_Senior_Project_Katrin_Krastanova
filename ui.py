@@ -23,14 +23,14 @@ class QuestLog:
     def __init__(self,font):
         self.font = font
     def draw(self,surface, manager, character):
+        done = sum(q.complete for q in manager.quests)
         if manager.finished:
             lines = ["All quests are completed!"]
         else:
-            quest = manager.active
-            lines = [f"Quest {manager.index +1}/{len(manager.quests)}: {quest.title}"]
-            for i, step in enumerate(quest.steps):
-                done = i < quest.current or step.is_done(character)
-                lines.append(("[x] " if done else "[] ")+ step.text)
+            lines = [f"Quest {done}/{len(manager.quests)}: complete"]
+            for q in manager.active():
+                lines.append(f"{q.title} ({q.current +1}/{len(q.steps)}):")
+                lines.append(f"~  {q.current_text()}")
         y = 40
         for line in lines:
             surface.blit(self.font.render(line,True,(0,0,0)), (10,y))

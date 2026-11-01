@@ -1,6 +1,6 @@
 from player_state import Role
 EVIDENCE_ITEMS = ["overturned_cup", "empty_bottle", "suspicious_robe", "letters"]
-COUP_REQUIREMENTS = ["buried_", + i for i in EVIDENCE_ITEMS]
+#COUP_REQUIREMENTS = ["buried_", + i for i in EVIDENCE_ITEMS]
 
 def reveal_passage(character, painting, world=None):
     king_side=next(d for d in world.doors if d.name== "Hidden passage - Kings Room")
@@ -31,3 +31,19 @@ def evidence_action(clue_text, gone_text,take_text,item=None, needs=None, needs_
         character.set_flag("removed_" + obj.id)
         return take_text
     return use
+
+def bury_evidence(character,spot, world=None):
+    buried = spot.data.setdefault("buried",[])
+    if character.state.role != Role.ROYAL:
+        return "The soil here looks freshly dug." if buried else "Nothing suspicious here."
+    if not character.inventory.has("spade"):
+        return "You need a spade to dig here."
+    carried = [i for i in EVIDENCE_ITEMS if character.inventor.has(i)]
+    if not carried:
+        return "You have nothing to bury."
+    for item in carried:
+        character.inventory.remove(item)
+        character.set_flag("buried_" + item)
+        buried.append(item)
+    return "You dig a hole and bury " + ", ".join(i.replace("_"," ") for i in carried) + "."
+

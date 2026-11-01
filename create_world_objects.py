@@ -1,21 +1,25 @@
 from interactable import Interactable
 from prop import Prop
 from crafting import brew_truth_serum,mix_spiked_wine
-from object_actions import reveal_passage
+from object_actions import reveal_passage, evidence_action, bury_evidence
+
+SCARCE_ITEMS = ["jewelry", "kings_ring", "queens_ring"]
+
 def create_interactables():
     I = Interactable
-    return [
+    objects = [
     I("royal_vanity", "Vanity",(404,12, 176, 100), "Royal Room",
     gives = "jewelry", found_text="You find jewelry in the vanity.",empty_text="This vanity is empty.", solid =True),
     I("royal_wardrobe","Wardrobe",(480,328,100,228), "Royal Room",verb = "Investigate",
     found_text = "You find the Royals' clothes, but one robe is missing."),
-    I("royal_nightstand","Royal nightstand",(192,12,64,80),"Royal Room", gives= "empty_bottle",
-      found_text="You rummage through the nightstand and you find an empty sleeping potion bottle. You take it.",
-      empty_text="There is nothing left in here."),
+    I("royal_nightstand","Royal nightstand",(192,12,64,80),"Royal Room", use=evidence_action(item= "empty_bottle",
+      clue_text="You rummage through the nightstand and you find an empty sleeping potion bottle. You take it.",
+      gone_text="There is nothing left in here.", take_text="You take the empty bottle.")),
     I("corridor_cupboard","Corridor's cupboard",(8,584,28,96),"Corridor", gives="queens_room_key",
       found_text="You find the key to the Queens Room", empty_text="There is nothing more here"),
-    I("queen_desk", "Queens Desk", (8,708,72,192),"Queens Room", verb="Investigate",
-      found_text="You find suspicious letters between the Queen and the Royal"),
+    I("queen_desk", "Queens Desk", (8,708,72,192),"Queens Room", verb="Investigate", use=evidence_action(item= "letters",
+    clue_text="You find suspicious letters between the Queen and the Royal",
+    gone_text="There is nothing left here.", take_text="You take the letters.")),
     I("queen_nightstand","Queens nightstand",(504,1064,76,80),"Queens Room", gives= "queens_ring",
       found_text="You find the Queens ring.", empty_text="You searched this already."),
     I("queen_vanity","Queens vanity",(232,1226,124,40),"Queens Room",
@@ -49,12 +53,16 @@ def create_interactables():
       found_text="There are no clothes missing from the wardrobe."),
     I("king_bed", "King's Bed", (1704,564,268, 204), "Kings Room", verb="Inspect",
       gives="kings_ring",found_text="You find the King's ring under the bed. You take it.", empty_text="There is nothing else here"),
-    I("king_nightstand","King's nightstand", (1904,484, 68,80),"Kings Room", "Look","overturned_cup",
-      found_text="There is an empty overturned cup next to the nightstand. You inspect it, there are remnants of a purple liquid."),
+    I("king_nightstand","King's nightstand", (1904,484, 68,80),"Kings Room", "Look",use=evidence_action(item ="overturned_cup",
+      clue_text="There is an empty overturned cup next to the nightstand. You inspect it, there are remnants of a purple liquid.",
+    gone_text="Nothing here, someone has cleaned.", take_text="You take the overturned cup.")),
     I("king_vanity","Kings Vanity", (1556, 924, 152,60),"Kings Room", "Examine",
-      found_text="There is a suspicious robe on the vanity chair."),
-    I("king_carpet", "carpet", (1748,800,124, 84),"Kings Room", "Examine",gives= "blood_stain",
-      found_text="There are blood stains on the carpet.", color=(132,37,197),solid=False),
+      use=evidence_action(item = "suspicious_robe",clue_text="There is a suspicious robe on the vanity chair.",
+        gone_text="There is nothing on the chair.",take_text="You take the suspicious robe." )),
+    I("king_carpet", "carpet", (1748,800,124, 84),"Kings Room", "Examine",
+      use=evidence_action(clue_text="There are blood stains on the carpet.",gone_text="The carpet looks recently cleaned",
+                          take_text="You scrub the carpet until all the blood is gone.",
+                          needs= "water", needs_text="You need water from the stable to clean this."), color=(132,37,197),solid=False),
     I("painting", "Painting", (1722,969,76,16),"Kings Room", verb= "Move",
       color=(90,60,130), solid=False, use=reveal_passage),
     I("witch_cupboard_1","Cupboard", (2096,8,144,72),"Witch House",verb="Take",gives="fairy_dust",
@@ -76,7 +84,15 @@ def create_interactables():
     I("box_2", "Flowers", (2524, 408, 72, 64), "Witch House", verb="Take", gives="flower",
       found_text="You take a forest flower.", empty_text="You do not need more."),
     I("cauldron", "Cauldron",(2280,160,124,124),"Witch House", verb="Brew", use=brew_truth_serum),
+    I("tool_rack", "Tool Rack", (1860,1684,112,132), "Stable", verb="Take", gives="spade",
+      found_text="You take a spade.",empty_text="You do not need more spades."),
+    I("burial_spot", "Loose Soil", (2200,1500,80,80),"Woods", verb="Dig", color= (68,50,15), solid= False,use=bury_evidence),
    ]
+    for o in objects:
+        if o.gives and o.gives not in SCARCE_ITEMS:
+            o.per_character = True
+    return objects
+
 def create_props():
     P = Prop
     return[
@@ -137,7 +153,6 @@ def create_props():
         P("big_lamp_4", (1468, 1824, 72, 84), "Entrance Hall"),
         P("horse_pen_1",(1556,1464,152,192),"Stable"),
         P("horse_pen_2", (1821, 1464, 152, 192), "Stable"),
-        P("horse_accessories", (1860,1684,112,132), "Stable"),
         P("lamp_1_king", (1908,360, 44, 44),"Kings Room"),
         P("carpet_1_king",(1588,481,124,364),"Kings Room",color=(132,37,197),solid=False),
         P("king_nightstand", (1904,767,68,80),"Kings Room"),

@@ -15,7 +15,7 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
-    player_state = PlayerState(Role.ROYAL)
+    player_state = PlayerState(Role.SERVANT)
     player = Player((1068, 2000), player_state)
     characters = [player]
     castle = Castle()

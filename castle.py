@@ -1,7 +1,7 @@
 import pygame
 from door import Door
 from player_state import Role
-from create_world_objects import create_interactables, create_props
+from create_world_objects import create_interactables, create_props, create_mushroom_trail
 
 class Castle:
     CORONATION_TIME =10.0
@@ -12,7 +12,7 @@ class Castle:
         self.doors = []
         self.coronation = None
         self.interactable = create_interactables()
-        self.props = create_props()
+        self.props = create_props() + create_mushroom_trail()
         self.passage =[pygame.Rect(1712, 992, 96, 464)]
         self.create_castle()
         self.create_doors()

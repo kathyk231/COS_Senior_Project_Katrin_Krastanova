@@ -94,9 +94,9 @@ def create_interactables():
       color=(170, 140, 50), solid=False, use=announce_king_death),
     I("throne_seat", "Throne Seat", (1036,396,84,44), "Throne Room", verb="Sit",
       color=(170, 140, 50), solid=False, use=sit_on_the_throne),
-    I("horse_trough", "Horse Trough", (1716,1560,96,40), "Stable", verb="Pour",
+    I("horse_trough", "Horse Trough", (1587,1616,96,40), "Stable", verb="Pour",
       color=(70,110,170), solid=False, use=deliver_action("water", "watered_horses", "You fill up the trough. The horses drink", "You need a bucket of water.")),
-    I("feeding_rack", "Hay Rack", (1716, 1610,96,40), "Stable", verb= "Fill", color= (190,170,80), solid=False,
+    I("feeding_rack", "Hay Rack", (1821, 1500,40,96), "Stable", verb= "Fill", color= (190,170,80), solid=False,
       use=deliver_action("hay", "fed_horses", "You fill up the rack with hay.", "You need some hay."))
    ]
     for o in objects:
@@ -171,3 +171,15 @@ def create_props():
         P("carpet_2_king",(1748,448,124, 84),"Kings Room",color=(132,37,197),solid=False),
         P("witch_carpet", (2200,200,284,244),"Witch House",color=(132,37,197),solid=False)
     ]
+def create_mushroom_trail():
+    waypoints = [(2060,1860),(2200,1840),(2300,1700),(2380,1500),(2300,1300),(2400,1100),(2330,900),(2400,700),(2344,540)]
+    props, n = [], 0
+    for (x1,y1),(x2,y2) in waypoints:
+        length = ((x2-x1)**2+(y2-y1)**2)**0.5
+        count = max(1, int(length//70))
+        for i in range(count):
+            n+=1
+            x = x1 + (x2-x1) *i / count
+            y = y1 + (y2-y1) *i / count
+            props.append(Prop(f"mushroom_{n}", (int(x), int(y),20,20),"Woods",color=(210,60,60),solid=False))
+    return props

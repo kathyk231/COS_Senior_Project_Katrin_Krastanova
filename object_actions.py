@@ -17,6 +17,8 @@ def reveal_passage(character, painting, world=None):
 def evidence_action(clue_text, gone_text,take_text,item=None, needs=None, needs_text=""):
     def use(character, obj, world=None):
         if obj.looted:
+            if character.state.role == Role.SERVANT and not character.has_flag("searched_" + obj.id):
+                character.set_flag("missed_" + obj.id)
             return gone_text
         if character.state.role == Role.SERVANT:
             character.set_flag("searched_" + obj.id)
@@ -31,7 +33,15 @@ def evidence_action(clue_text, gone_text,take_text,item=None, needs=None, needs_
         character.set_flag("removed_" + obj.id)
         return take_text
     return use
-
+def deliver_action(item,flag,done_text,missing_text, repeat_text="You already did that"):
+    def use(character, obj, world=None):
+        if character.has_flag(flag):
+            return repeat_text
+        if not character.inventory.remove_item(item):
+            return missing_text
+        character.set_flag(flag)
+        return done_text
+    return use
 def bury_evidence(character,spot, world=None):
     buried = spot.data.setdefault("buried",[])
     if character.state.role != Role.ROYAL:

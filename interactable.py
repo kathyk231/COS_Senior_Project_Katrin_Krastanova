@@ -28,9 +28,16 @@ class Interactable:
             return self.use(character,self,world)
         flag = "searched_" + self.id
         if self.gives:
-            if self.looted:
-                return self.empty_text
-            self.looted = True
+            if self.per_character:
+                if character.name in self.taken_by:
+                    return self.empty_text
+                self.taken_by.add(character.name)
+            else:
+                if self.looted:
+                    if not character.has_flag(flag):
+                        character.set_flag("missed_"+ self.id)
+                    return self.empty_text
+                self.looted = True
             character.inventory.add_item(self.gives)
             character.set_flag(flag)
             return self.found_text

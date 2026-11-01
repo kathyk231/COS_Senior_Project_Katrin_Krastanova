@@ -1,7 +1,8 @@
 from interactable import Interactable
 from prop import Prop
 from crafting import brew_truth_serum,mix_spiked_wine
-from object_actions import reveal_passage, evidence_action, bury_evidence, announce_king_death, sit_on_the_throne
+from object_actions import reveal_passage, evidence_action, bury_evidence, announce_king_death, sit_on_the_throne, \
+    deliver_action
 
 SCARCE_ITEMS = ["jewelry", "kings_ring", "queens_ring"]
 
@@ -92,7 +93,11 @@ def create_interactables():
     I("podium_speech_2", "Podium", (1144, 396, 160, 44), "Throne Room", verb="Speak",
       color=(170, 140, 50), solid=False, use=announce_king_death),
     I("throne_seat", "Throne Seat", (1036,396,84,44), "Throne Room", verb="Sit",
-      color=(170, 140, 50), solid=False, use=sit_on_the_throne)
+      color=(170, 140, 50), solid=False, use=sit_on_the_throne),
+    I("horse_trough", "Horse Trough", (1716,1560,96,40), "Stable", verb="Pour",
+      color=(70,110,170), solid=False, use=deliver_action("water", "watered_horses", "You fill up the trough. The horses drink", "You need a bucket of water.")),
+    I("feeding_rack", "Hay Rack", (1716, 1610,96,40), "Stable", verb= "Fill", color= (190,170,80), solid=False,
+      use=deliver_action("hay", "fed_horses", "You fill up the rack with hay.", "You need some hay."))
    ]
     for o in objects:
         if o.gives and o.gives not in SCARCE_ITEMS:

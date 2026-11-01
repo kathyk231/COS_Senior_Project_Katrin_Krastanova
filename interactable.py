@@ -12,6 +12,9 @@ class Interactable:
         self.found_text = found_text
         self.empty_text = empty_text
         self.looted = False
+        self.per_character = False
+        self.taken_by = set()
+        self.data = {}
         self.color = color
         self.sprite = load_sprite(sprite) if isinstance(sprite,str) else sprite
         self.solid = solid

@@ -43,7 +43,7 @@ class Castle:
                       Door("Throne Room door",(1068, 992), [Role.ROYAL, Role.SERVANT]),
                       Door("Royal Room door",(296, 564), [Role.ROYAL,Role.SERVANT]),
                       Door("Kings door",(1548,660), [Role.ROYAL]),
-                      Door("Queens Room door",(296, 700), [Role.ROYAL,Role.SERVANT]),
+                      Door("Queens Room door",(296, 700), [Role.SERVANT],key="queens_room_key"),
                       Door("Entrance hall main door", (1068, 2000), [Role.SERVANT, Role.ROYAL]),
                       Door("Stable door", (1548, 1728), [Role.SERVANT],key="stable_key"),
                       Door("Corridor door", (588, 632), [Role.ROYAL], key="corridor_key"),

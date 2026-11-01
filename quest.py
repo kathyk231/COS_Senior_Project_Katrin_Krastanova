@@ -5,7 +5,7 @@ class QuestStep:
         self.required = required
     def is_done(self,character):
         facts = character.facts()
-        return all(facts.get(key)== value for key, value in self.required)
+        return all(facts.get(key)== value for key, value in self.required.items())
 class Quest:
     def __init__(self,id,title, steps):
         self.id = id
@@ -16,6 +16,7 @@ class Quest:
     def complete(self):
         return self.current >= len(self.steps)
     def update(self,character):
-        self.current +=1
+        while not self.complete and self.steps[self.current].is_done(character):
+            self.current +=1
     def current_text(self):
         return "Done!" if self.complete else self.steps[self.current].text

@@ -8,8 +8,8 @@ def brew_truth_serum(character, cauldron,world=None):
         names =",".join(m.replace("_"," ") for m in missing)
         return f"The recipe is not complete. You need {names}."
     for item in TRUTH_SERUM:
-        character.inventory.remove(item)
-    character.inventory.add("truth_serum")
+        character.inventory.remove_item(item)
+    character.inventory.add_item("truth_serum")
     character.set_flag("brewed_truth_serum")
     cauldron.looted = True
     return "The cauldron glows and sparkles. You put the serum in the bottle and take it. "
@@ -20,7 +20,7 @@ def mix_spiked_wine(character, kitchen_table, world=None):
         names =",".join(m.replace("_"," ") for m in missing)
         return f"You still need {names}."
     for item in SPIKED_WINE:
-        character.inventory.remove(item)
-    character.inventory.add("spiked_wine")
+        character.inventory.remove_item(item)
+    character.inventory.add_item("spiked_wine")
     character.set_flag("mixed_spiked_wine")
     return "You pour the wine and the serum into the cup. It looks perfectly normal. You take it "

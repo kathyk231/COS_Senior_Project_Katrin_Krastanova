@@ -172,9 +172,9 @@ def create_props():
         P("witch_carpet", (2200,200,284,244),"Witch House",color=(132,37,197),solid=False)
     ]
 def create_mushroom_trail():
-    waypoints = [(2060,1860),(2200,1840),(2300,1700),(2380,1500),(2300,1300),(2400,1100),(2330,900),(2400,700),(2344,540)]
+    waypoints = [(2060,1860),(2200,1840),(2300,1700),(2380,1500),(2300,1300),(2400,1100),(2330,900),(2400,700),(2344,540),(2332,538)]
     props, n = [], 0
-    for (x1,y1),(x2,y2) in waypoints:
+    for (x1,y1),(x2,y2) in zip(waypoints,waypoints[1:]):
         length = ((x2-x1)**2+(y2-y1)**2)**0.5
         count = max(1, int(length//70))
         for i in range(count):

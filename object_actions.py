@@ -24,7 +24,7 @@ def evidence_action(clue_text, gone_text,take_text,item=None, needs=None, needs_
         if needs:
             if not character.inventory.has(needs):
                 return needs_text
-            character.inventory.remove(needs)
+            character.inventory.remove_item(needs)
         obj.looted=True
         if item:
             character.inventory.add(item)
@@ -38,11 +38,11 @@ def bury_evidence(character,spot, world=None):
         return "The soil here looks freshly dug." if buried else "Nothing suspicious here."
     if not character.inventory.has("spade"):
         return "You need a spade to dig here."
-    carried = [i for i in EVIDENCE_ITEMS if character.inventor.has(i)]
+    carried = [i for i in EVIDENCE_ITEMS if character.inventory.has(i)]
     if not carried:
         return "You have nothing to bury."
     for item in carried:
-        character.inventory.remove(item)
+        character.inventory.remove_item(item)
         character.set_flag("buried_" + item)
         buried.append(item)
     return "You dig a hole and bury " + ", ".join(i.replace("_"," ") for i in carried) + "."

@@ -3,7 +3,8 @@ from player import Player
 from player_state import PlayerState, Role
 from castle import Castle
 from Navmesh_manager import NavmeshManager
-from ui import MessageLog
+from ui import MessageLog,QuestLog
+from quests import QuestManager
 from servant_quests import create_servant_quest_1
 
 WIDTH, HEIGHT, FPS = 960, 540, 60
@@ -14,11 +15,13 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
-    player_state = PlayerState(Role.ROYAL)
+    player_state = PlayerState(Role.SERVANT)
     player = Player((1068, 2000), player_state)
     characters = [player]
     castle = Castle()
-    quest =create_servant_quest_1()
+    quests =QuestManager([create_servant_quest_1()])
+    quest_log = QuestLog(font)
+    quests.on_complete = lambda q: messages.say(f"Quest completed: {q.title}")
     messages = MessageLog(font)
     navmesh = NavmeshManager()
     solids = [o.rect for o in castle.interactable if o.solid]
@@ -42,7 +45,7 @@ def main():
         navmesh.update_doors(dt,[(c.position,c.radius) for c in characters])
         for c in characters:
             c.update_room(castle)
-        quest.update(player)
+        quests.update(player)
         camera = pygame.Vector2(player.position.x - WIDTH/2, player.position.y - HEIGHT/2)
         screen.fill((30,35,50))
         castle.draw_rooms(screen, camera)
@@ -55,8 +58,7 @@ def main():
         messages.draw(screen)
         hud = f"{player.state.role.value.upper()} | Room: {player.room} |Position: {int(player.position.x)}/{int(player.position.y)} | Items: {','.join(player.inventory.names()) or '-'}"
         screen.blit(font.render(hud,True,(0,0,0)),(10,10))
-        log = font.render(f"Quest: {quest.title} - {quest.current_text()}", True, (0,0,0))
-        screen.blit(log,(10,34))
+        quest_log.draw(screen,quests, player)
         if castle.coronation:
             t = font.render(f"Coronation: {castle.coronation['left']:.0f}s",True,(0,0,0))
             screen.blit(t,(WIDTH//2 - t.get_width()//2,40))

@@ -13,7 +13,7 @@ def create_interactables():
     I("royal_wardrobe","Wardrobe",(480,328,100,228), "Royal Room",verb = "Investigate",
     found_text = "You find the Royals' clothes, but one robe is missing."),
     I("royal_nightstand","Royal nightstand",(192,12,64,80),"Royal Room", use=evidence_action(item= "empty_bottle",
-      clue_text="You rummage through the nightstand and you find an empty sleeping potion bottle. You take it.",
+      clue_text="You rummage through the nightstand and you find an empty sleeping potion bottle.",
       gone_text="There is nothing left in here.", take_text="You take the empty bottle.")),
     I("corridor_cupboard","Corridor's cupboard",(8,584,28,96),"Corridor", gives="queens_room_key",
       found_text="You find the key to the Queens Room", empty_text="There is nothing more here"),

@@ -1,4 +1,4 @@
-from quest import QuestStep, Quest
+from quests import QuestStep, Quest
 
 def create_servant_quest_1():
     return Quest("s1","Investigate the Royal Room: ",[

@@ -1,7 +1,10 @@
 import pygame
+
+import interactable
 from door import Door
 from player_state import Role
 from create_world_objects import create_interactables, create_props, create_mushroom_trail
+from npcs import create_npcs
 
 class Castle:
     CORONATION_TIME =10.0
@@ -11,7 +14,7 @@ class Castle:
         self.rooms = []
         self.doors = []
         self.coronation = None
-        self.interactable = create_interactables()
+        self.interactable = create_interactables() + create_npcs()
         self.props = create_props() + create_mushroom_trail()
         self.passage =[pygame.Rect(1712, 992, 96, 464)]
         self.create_castle()
@@ -92,6 +95,16 @@ class Castle:
                 return "This door is not for you."
         return None
 
+    def give(self, character, reach=60):
+        best, best_distance = None, reach
+        for o in self.interactable:
+            if o.on_give:
+                d = o.distance_to(character.position)
+                if d <= best_distance:
+                    best, best_distance = o, d
+        if best is None:
+            return "There is noone to give anything to."
+        return best.on_give(character, best, self)
     def room_at(self, position):
         position = (position.x, position.y)
         for room in reversed(self.rooms):
@@ -129,3 +142,4 @@ class Castle:
             who.set_flag("crowned")
             return "You have been crowned to be the new king. Long live the King."
         return None
+

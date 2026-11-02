@@ -1,7 +1,7 @@
 import pygame
 from sprites import load_sprite
 class Interactable:
-    def __init__(self, id, name, rect, room, verb ="Search", gives = None, found_text = "You find nothing.", empty_text = "There is nothing more here.", color = (150,60,100), solid= True, sprite=None, use=None):
+    def __init__(self, id, name, rect, room, verb ="Search", gives = None, found_text = "You find nothing.", empty_text = "There is nothing more here.", color = (150,60,100), solid= True, sprite=None, use=None, on_give=None):
         self.id = id
         self.use = use
         self.name = name
@@ -9,6 +9,7 @@ class Interactable:
         self.room = room
         self.verb = verb
         self.gives = gives
+        self.on_give = on_give
         self.found_text = found_text
         self.empty_text = empty_text
         self.looted = False

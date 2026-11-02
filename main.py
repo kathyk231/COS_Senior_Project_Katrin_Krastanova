@@ -16,7 +16,7 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
-    ROLE = Role.SERVANT
+    ROLE = Role.ROYAL
     player = Player((1068, 2000), PlayerState(ROLE))
     characters = [player]
     castle = Castle()
@@ -38,6 +38,8 @@ def main():
                 text = castle.interact(player)
                 if text:
                     messages.say(text)
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_b:
+                messages.say(castle.give(player))
             elif event.type == pygame.KEYDOWN and event.key in DEBUG_FLAGS:
                 player.set_flag(DEBUG_FLAGS[event.key])
                 messages.say("DEBUG"+ DEBUG_FLAGS[event.key])
@@ -68,17 +70,15 @@ def main():
             screen.blit(t,(WIDTH//2 - t.get_width()//2,40))
         obj = castle.nearest_interactable(player)
         if obj:
-            message = font.render(f"Click E:{obj.verb} {obj.name} ", True, (0,0,0))
+            message = font.render(f"Click E:{obj.verb} {obj.name} "+("   B: Give" if obj.on_give else ""), True, (0,0,0))
             screen.blit(message,(WIDTH//2 - message.get_width()//2,HEIGHT-60))
         pygame.display.flip()
     pygame.quit()
 
 if __name__ == "__main__":
     DEBUG_FLAGS = {
-        pygame.K_F1: "bribed_guard",
         pygame.K_F2: "talked_stable_guy",
         pygame.K_F3: "knows_secret_bag",
-        pygame.K_F4: "bribed_stable_guy",
         pygame.K_F5: "royal_confessed",
 
     }

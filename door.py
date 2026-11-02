@@ -1,7 +1,7 @@
 
 class Door:
     AUTO_CLOSE_TIMER = 3.0
-    def __init__(self, name, position, allowed_role = None,key=None, hidden=False):
+    def __init__(self, name, position, allowed_role = None,key=None, hidden=False, pass_flags=None):
         self.name = name
         self.position = position
         self.is_open =False
@@ -9,6 +9,7 @@ class Door:
         self.locked = False
         self.key = key
         self.hidden = hidden
+        self.pass_flags = pass_flags or []
         if allowed_role is None:
             self.allowed_role=[]
         else:
@@ -16,7 +17,9 @@ class Door:
     def can_open(self,character):
         if character.state.role in self.allowed_role:
             return True
-        return self.key is not None and character.inventory.has(self.key)
+        if self.key is not None and character.inventory.has(self.key):
+            return True
+        return any(character.has_flag(f) for f in self.pass_flags)
     def open_door(self, character):
         if self.locked:
             return False

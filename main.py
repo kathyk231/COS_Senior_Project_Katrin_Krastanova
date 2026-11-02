@@ -5,7 +5,8 @@ from castle import Castle
 from Navmesh_manager import NavmeshManager
 from ui import MessageLog,QuestLog
 from quests import QuestManager
-from servant_quests import create_servant_quest_1
+from servant_quests import create_servant_quests
+from royal_quests import create_royal_quests
 
 WIDTH, HEIGHT, FPS = 960, 540, 60
 
@@ -15,11 +16,11 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
-    player_state = PlayerState(Role.SERVANT)
-    player = Player((1068, 2000), player_state)
+    ROLE = Role.ROYAL
+    player = Player((1068, 2000), PlayerState(ROLE))
     characters = [player]
     castle = Castle()
-    quests =QuestManager([create_servant_quest_1()])
+    quests =QuestManager(create_servant_quests() if ROLE == Role.SERVANT else create_royal_quests())
     quest_log = QuestLog(font)
     quests.on_complete = lambda q: messages.say(f"Quest completed: {q.title}")
     messages = MessageLog(font)
@@ -37,6 +38,9 @@ def main():
                 text = castle.interact(player)
                 if text:
                     messages.say(text)
+            elif event.type == pygame.KEYDOWN and event.key in DEBUG_FLAGS:
+                player.set_flag(DEBUG_FLAGS[event.key])
+                messages.say("DEBUG"+ DEBUG_FLAGS[event.key])
         player.update(dt,navmesh)
         text = castle.update(dt)
         if text:
@@ -70,6 +74,14 @@ def main():
     pygame.quit()
 
 if __name__ == "__main__":
+    DEBUG_FLAGS = {
+        pygame.K_F1: "bribed_guard",
+        pygame.K_F2: "talked_stable_guy",
+        pygame.K_F3: "knows_secret_bag",
+        pygame.K_F4: "bribed_stable_guy",
+        pygame.K_F5: "royal_confessed",
+
+    }
     main()
 
 

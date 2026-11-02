@@ -44,7 +44,7 @@ class Castle:
         self.doors = [Door("Kitchens door",(588,1448),[], key="kitchen_key"),
                       Door("Throne Room door",(1068, 992), [Role.ROYAL, Role.SERVANT]),
                       Door("Royal Room door",(296, 564), [Role.ROYAL,Role.SERVANT]),
-                      Door("Kings door",(1548,660), [Role.ROYAL]),
+                      Door("Kings door",(1548,660), [Role.ROYAL], pass_flags=["bribed_guard","guard_drunk"]),
                       Door("Queens Room door",(296, 700), [Role.SERVANT],key="queens_room_key"),
                       Door("Entrance hall main door", (1068, 2000), [Role.SERVANT, Role.ROYAL]),
                       Door("Stable door", (1548, 1728), [Role.SERVANT],key="stable_key"),
@@ -85,6 +85,8 @@ class Castle:
             if door.locked:
                 return "The door is locked."
             if not door.open_door(character):
+                if door.pass_flags:
+                    return "The guard is blocking the way. Maybe he can be persuaded."
                 if door.key:
                     return "This door is locked. You need the key."
                 return "This door is not for you."

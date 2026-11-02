@@ -1,7 +1,7 @@
 TRUTH_SERUM = ["potion_bottle","truth_berry", "light_essence","tooth_leaf","phoenix_feather"]
 SPIKED_WINE = ["truth_serum", "wine", "wine_cup"]
 def brew_truth_serum(character, cauldron,world=None):
-    if character.has_item("brewed_truth_serum"):
+    if character.has_flag("brewed_truth_serum"):
         return "You already brewed your serum."
     missing = [i for i in TRUTH_SERUM if not character.inventory.has(i)]
     if missing:

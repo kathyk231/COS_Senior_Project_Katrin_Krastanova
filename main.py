@@ -61,7 +61,6 @@ def main():
         castle.draw_doors(screen, camera)
         for c in characters:
             c.draw(screen, camera)
-        messages.draw(screen)
         hud = f"{player.state.role.value.upper()} | Room: {player.room} |Position: {int(player.position.x)}/{int(player.position.y)} | Items: {','.join(player.inventory.names()) or '-'}"
         screen.blit(font.render(hud,True,(0,0,0)),(10,10))
         quest_log.draw(screen,quests, player)
@@ -71,7 +70,8 @@ def main():
         obj = castle.nearest_interactable(player)
         if obj:
             message = font.render(f"Click E:{obj.verb} {obj.name} "+("   B: Give" if obj.on_give else ""), True, (0,0,0))
-            screen.blit(message,(WIDTH//2 - message.get_width()//2,HEIGHT-60))
+            screen.blit(message,(WIDTH//2 - message.get_width()//2,HEIGHT-120))
+        messages.draw(screen)
         pygame.display.flip()
     pygame.quit()
 

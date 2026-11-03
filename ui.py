@@ -1,3 +1,5 @@
+import textwrap
+
 import pygame
 
 class MessageLog:
@@ -8,17 +10,23 @@ class MessageLog:
 
     def say(self, text, seconds = 3.0):
         self.text = text
-        self.timer = seconds
+        self.timer = max(seconds, len(text)//14)
     def update(self,dt):
         if self.timer > 0:
             self.timer -= dt
     def draw(self,surface):
         if self.timer <=0 or not self.text:
             return
-        img = self.font.render(self.text,True,(0,0,0))
-        box = img.get_rect(center = (surface.get_width()//2,surface.get_height()-25))
-        pygame.draw.rect(surface,(255,255,255),box.inflate(24,12))
-        surface.blit(img,box)
+        img = [self.font.render(line,True,(0,0,0)) for line in textwrap.wrap(self.text,90)]
+        w = (max(i.get_width() for i in img))
+        h =(sum(i.get_height() for i in img))
+        box = pygame.Rect(0,0,w+24,h+12)
+        box.midbottom = (surface.get_width()//2, surface.get_height()-10)
+        pygame.draw.rect(surface,(240,240,240),box)
+        y = box.top +6
+        for im in img:
+            surface.blit(im, (box.centerx - im.get_width()//2, y))
+            y += im.get_height()
 class QuestLog:
     def __init__(self,font):
         self.font = font

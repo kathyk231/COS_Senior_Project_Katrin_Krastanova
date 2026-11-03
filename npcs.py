@@ -22,7 +22,7 @@ def talk_stable_guy(character, npc, world=None):
         return "Farmer: I... I am sorry I can't say anything. Please leave."
     character.set_flag("knows_secret_bag")
     character.set_flag("sent_to_witch")
-    return "Farmer: A guard hauled a huge back through the tunnel you came from. It bore the Royal crest. Follow the mushroom trail to the witch for a Truth Serum."
+    return "Farmer: A guard hauled a huge bag through the tunnel you came from. It bore the Royal crest. Follow the mushroom trail to the witch for a Truth Serum."
 def give_guard(character, guard, world=None):
     role = character.state.role
     if character.has_flag("bribed_guard"):
@@ -42,6 +42,10 @@ def give_guard(character, guard, world=None):
             if role == Role.ROYAL:
                 return f"The guard takes the {name}. He will keep quiet"
             return f"The guard takes the {name} and looks away. You may pass."
+    if role == Role.ROYAL:
+        character.set_flag("bribed_guard")
+        guard.data.setdefault("paid_by", "royal")
+        return "You order the guard to keep quiet, but he expected payment."
     return "You have nothing to offer the guard."
 def give_stable_guy(character, npc, world=None):
     if character.state.role != Role.ROYAL:
@@ -54,7 +58,9 @@ def give_stable_guy(character, npc, world=None):
             npc.data["silenced"] = True
             name = item.replace("_", " ")
             return f"The farmer pockets the {name}. He will keep quiet."
-    return "You have nothing to offer the guard."
+    character.set_flag("bribed_stable_guy")
+    npc.data["silenced"] = True
+    return "You order the farmer to stay quiet. He agrees trembling."
 
 
 def create_npcs():

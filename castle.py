@@ -14,6 +14,7 @@ class Castle:
         self.rooms = []
         self.doors = []
         self.coronation = None
+        self.result = None
         self.interactable = create_interactables() + create_npcs()
         self.props = create_props() + create_mushroom_trail()
         self.passage =[pygame.Rect(1712, 992, 96, 464)]
@@ -140,6 +141,7 @@ class Castle:
         if c["left"] <= 0:
             self.coronation = None
             who.set_flag("crowned")
+            self.result = {"winner": "royal", "text": "The Royal has claimed the throne. The cover-up worked."}
             return "You have been crowned to be the new king. Long live the King."
         return None
 

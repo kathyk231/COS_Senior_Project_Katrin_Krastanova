@@ -14,6 +14,7 @@ WIDTH, HEIGHT, FPS = 960, 540, 60
 def main():
     pygame.init()
     font = pygame.font.SysFont("Times New Roman", 20)
+    big_font = pygame.font.SysFont("Times New Roman", 44)
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
@@ -38,6 +39,8 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if castle.result:
+                continue
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_e:
                 text = castle.interact(player)
                 if text:
@@ -49,7 +52,8 @@ def main():
                     if o.id == "royal_npc":
                         o.data["character"].set_flag("announced_king_death")
                         messages.say("DEBUG: The royal has announced the Death.")
-        player.update(dt,navmesh)
+        if not castle.result:
+            player.update(dt,navmesh)
         text = castle.update(dt)
         if text:
             messages.say(text)
@@ -78,6 +82,14 @@ def main():
             message = font.render(f"Click E:{obj.verb} {obj.name} "+("   B: Give" if obj.on_give else ""), True, (0,0,0))
             screen.blit(message,(WIDTH//2 - message.get_width()//2,HEIGHT-120))
         messages.draw(screen)
+        if castle.result:
+            shade = pygame.Surface((WIDTH,HEIGHT), pygame.SRCALPHA)
+            shade.fill((0,0,0,170))
+            screen.blit(shade,(0,0))
+            title = big_font.render(f"{castle.result['winner'].upper()} WINS", True, (255,215,0))
+            screen.blit(title, title.get_rect(center=(WIDTH//2,HEIGHT//2-20)))
+            line = font.render(castle.result['text'], True, (255,255,255))
+            screen.blit(line,line.get_rect(center=(WIDTH//2,HEIGHT//2+30)))
         pygame.display.flip()
     pygame.quit()
 

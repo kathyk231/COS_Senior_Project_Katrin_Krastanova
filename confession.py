@@ -18,7 +18,7 @@ def decision_cup(giver,royal,  world, accepted):
         giver.inventory.remove_item("spiked_wine")
         royal.set_flag("drank_truth_serum")
         giver.set_flag("royal_confessed")
-        world.result = {"winner": "servant", "text":" The Royal drinks... and confesses everything."}
+        world.result = {"winner": "servant", "text":" The Royal drinks... and begins to confess everything. ROYAL: I... I had my father taken... away... I WANTED THE THRONE FOR MYSELF!!! I DESERVE IT!!..."}
         return "The Royal drinks the wine... and begins to confess everything."
     royal.suspicion += 1
     return "The Royal refuses the cup and looks at you suspiciously."

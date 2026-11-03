@@ -7,6 +7,7 @@ from ui import MessageLog,QuestLog
 from quests import QuestManager
 from servant_quests import create_servant_quests
 from royal_quests import create_royal_quests
+from npcs import create_r_standin
 
 WIDTH, HEIGHT, FPS = 960, 540, 60
 
@@ -16,10 +17,13 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
-    ROLE = Role.ROYAL
+    ROLE = Role.SERVANT
     player = Player((1068, 2000), PlayerState(ROLE))
+    player.inventory.add_item("spiked_wine")
     characters = [player]
     castle = Castle()
+    if ROLE == Role.SERVANT:
+        castle.interactable.append(create_r_standin())
     quests =QuestManager(create_servant_quests() if ROLE == Role.SERVANT else create_royal_quests())
     quest_log = QuestLog(font)
     quests.on_complete = lambda q: messages.say(f"Quest completed: {q.title}")
@@ -40,9 +44,11 @@ def main():
                     messages.say(text)
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_b:
                 messages.say(castle.give(player))
-            elif event.type == pygame.KEYDOWN and event.key in DEBUG_FLAGS:
-                player.set_flag(DEBUG_FLAGS[event.key])
-                messages.say("DEBUG"+ DEBUG_FLAGS[event.key])
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_F1:
+                for o in castle.interactable:
+                    if o.id == "royal_npc":
+                        o.data["character"].set_flag("announced_king_death")
+                        messages.say("DEBUG: The royal has announced the Death.")
         player.update(dt,navmesh)
         text = castle.update(dt)
         if text:
@@ -76,10 +82,6 @@ def main():
     pygame.quit()
 
 if __name__ == "__main__":
-    DEBUG_FLAGS = {
-        pygame.K_F5: "royal_confessed",
-
-    }
     main()
 
 

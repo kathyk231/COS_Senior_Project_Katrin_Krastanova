@@ -1,5 +1,8 @@
 from interactable import Interactable
 from player_state import Role
+from character import Character
+from player_state import PlayerState, Role
+from confession import offer_cup
 
 GUARD_BRIBES = ["jewelry", "queens_ring"]
 FARMER_BRIBES = [ "queens_ring", "jewelry"]
@@ -62,6 +65,24 @@ def give_stable_guy(character, npc, world=None):
     npc.data["silenced"] = True
     return "You order the farmer to stay quiet. He agrees trembling."
 
+def talk_royal(character, npc, world=None):
+    royal = npc.data["character"]
+    if royal.has_flag("drank_truth_serum"):
+        return "ROYAL: I... I had my father taken... away... I WANTED THE THRONE FOR MYSELF!!! I DESERVE IT!!..."
+    if royal.has_flag("announced_king_death"):
+        return "ROYAL: The King is dead. Long live the crown."
+    return "ROYAL: The king is missing. A tragedy has struck. What do you want Servant??"
+
+def give_royal(character, npc, world=None):
+    return offer_cup(character, npc.data["character"], world)
+
+def create_r_standin():
+    I = Interactable
+    royal = Character("Royal", (1200,496), PlayerState(Role.ROYAL))
+    npc = I("royal_npc", "The Royal", (1180,470,40,52), "Throne Room", verb= "Talk", color=(170,60,160),
+            use=talk_royal, on_give=give_royal)
+    npc.data["character"] = royal
+    return npc
 
 def create_npcs():
     I = Interactable

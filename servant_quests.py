@@ -24,7 +24,7 @@ def create_servant_quests():
         S("Talk to the farmer", {"talked_stable_guy":True}),
         S("Carry water to the horse trough.",{"watered_horses":True}),
         S("Fill the feeding rack with hay.",{"fed_horses":True}),
-        S("Listed to what the farmer knows.",{"knows_secret_bag":True})
+        S("Listed to what the farmer knows.",{"knows_secret_bag":True}, [{"searched_torn_sack":True}]),
     ], after= ["s2"])
     s4 = Quest("s4","The Witch's House: ",[
         S("Follow the mushroom trail in the woods to the Witch's House.",{"room":"Witch House"}),

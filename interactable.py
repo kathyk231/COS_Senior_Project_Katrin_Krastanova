@@ -1,7 +1,7 @@
 import pygame
 from sprites import load_sprite
 class Interactable:
-    def __init__(self, id, name, rect, room, verb ="Search", gives = None, found_text = "You find nothing.", empty_text = "There is nothing more here.", color = (150,60,100), solid= True, sprite=None, use=None, on_give=None):
+    def __init__(self, id, name, rect, room, verb ="Search", gives = None, found_text = "You find nothing.", empty_text = "There is nothing more here.", color = (150,60,100), solid= True, sprite=None, use=None, on_give=None, max_uses=1):
         self.id = id
         self.use = use
         self.name = name
@@ -14,7 +14,8 @@ class Interactable:
         self.empty_text = empty_text
         self.looted = False
         self.per_character = False
-        self.taken_by = set()
+        self.taken_count = {}
+        self.max_uses = max_uses
         self.data = {}
         self.color = color
         self.sprite = load_sprite(sprite) if isinstance(sprite,str) else sprite
@@ -30,9 +31,10 @@ class Interactable:
         flag = "searched_" + self.id
         if self.gives:
             if self.per_character:
-                if character.name in self.taken_by:
+                used = self.taken_count.get(character.name,0)
+                if used >= self.max_uses:
                     return self.empty_text
-                self.taken_by.add(character.name)
+                self.taken_count[character.name] = used + 1
             else:
                 if self.looted:
                     if not character.has_flag(flag):

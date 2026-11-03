@@ -12,12 +12,26 @@ def talk_guard(character, npc, world= None):
 
 def talk_stable_guy(character, npc, world=None):
     character.set_flag("talked_" +npc.id)
-    return "Farmer: Busy day, the horses need water and hay."
-
+    if character.state.role == Role.ROYAL:
+        if character.has_flag("bribed_stable_guy"):
+            return "Farmer: My highness, my lips are sealed."
+        return "Farmer: My highness, is something wrong?."
+    if not (character.has_flag("watered_horses") and character.has_flag("fed_horses")):
+        return "Farmer: Water in the trough, hay in the rack. Then we can talk."
+    if npc.data.get("silenced"):
+        return "Farmer: I... I am sorry I can't say anything. Please leave."
+    character.set_flag("knows_secret_bag")
+    character.set_flag("sent_to_witch")
+    return "Farmer: A guard hauled a huge back through the tunnel you came from. It bore the Royal crest. Follow the mushroom trail to the witch for a Truth Serum."
 def give_guard(character, guard, world=None):
     role = character.state.role
     if character.has_flag("bribed_guard"):
         return "Guard: Coming to pay again?"
+    if character.has_flag("guard_drunk"):
+        return "Guard: I can't drink anymore."
+    if role == Role.SERVANT and character.inventory.remove_item("wine"):
+        character.set_flag("guard_drunk")
+        return "The guard takes the wine and dozes off. You can sneak past him now."
     if role == Role.SERVANT and guard.data.get("paid_by") == "royal":
         return "Guard: I serve only the Royal. I won't accept anything from you."
     for item in GUARD_BRIBES:

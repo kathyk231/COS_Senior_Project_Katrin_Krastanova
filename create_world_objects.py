@@ -28,7 +28,7 @@ def create_interactables():
     I("kitchen_cabinet","Kitchen Cabinet",(8,1352,72, 160),"Kitchen", verb="Open",gives="wine_cup",
       found_text="You take a wine cup.", empty_text="You do not need more cups."),
     I("wine_barrel","Wine barrel", (516,1548,64, 84),"Kitchen", verb= "Take wine", gives="wine",
-      found_text="You take a wine bottle", empty_text="You do not need more wine."),
+      found_text="You take a wine bottle", empty_text="You do not need more wine.", max_uses=2),
     I("kitchen_table", "Kitchen Table", (148,1432,284,164),"Kitchen", verb= "Mix", use=mix_spiked_wine),
     I("pot_1", "Pot", (616,360, 44,44),"Throne Room","Dig",
       found_text="There is nothing in this pot.", empty_text="You searched this already"),
@@ -97,7 +97,9 @@ def create_interactables():
     I("horse_trough", "Horse Trough", (1587,1616,96,40), "Stable", verb="Pour",
       color=(70,110,170), solid=False, use=deliver_action("water", "watered_horses", "You fill up the trough. The horses drink", "You need a bucket of water.")),
     I("feeding_rack", "Hay Rack", (1821, 1500,40,96), "Stable", verb= "Fill", color= (190,170,80), solid=False,
-      use=deliver_action("hay", "fed_horses", "You fill up the rack with hay.", "You need some hay."))
+      use=deliver_action("hay", "fed_horses", "You fill up the rack with hay.", "You need some hay.")),
+    I("torn_sack", "Torn Sack", (1744,1200, 56, 32),"Hidden Passage", verb= "Examine",
+      color=(120,100,70), solid=False, found_text="A piece of torn sack with the Royal crest and dark stains. Something was dragged here.")
    ]
     for o in objects:
         if o.gives and o.gives not in SCARCE_ITEMS:

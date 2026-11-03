@@ -16,7 +16,7 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
-    ROLE = Role.ROYAL
+    ROLE = Role.SERVANT
     player = Player((1068, 2000), PlayerState(ROLE))
     characters = [player]
     castle = Castle()
@@ -77,8 +77,6 @@ def main():
 
 if __name__ == "__main__":
     DEBUG_FLAGS = {
-        pygame.K_F2: "talked_stable_guy",
-        pygame.K_F3: "knows_secret_bag",
         pygame.K_F5: "royal_confessed",
 
     }

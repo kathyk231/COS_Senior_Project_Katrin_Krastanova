@@ -9,6 +9,8 @@ from quests import QuestManager
 from servant_quests import create_servant_quests
 from royal_quests import create_royal_quests
 from npcs import create_r_standin
+from confession import decision_cup, offer_cup
+from character import Character
 
 WIDTH, HEIGHT, FPS = 960, 540, 60
 
@@ -19,8 +21,8 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
-    ROLE = Role.SERVANT
-    player = Player((1068, 2000), PlayerState(ROLE))
+    ROLE = Role.ROYAL
+    player = Player((1068, 1960), PlayerState(ROLE))
     player.inventory.add_item("spiked_wine")
     characters = [player]
     castle = Castle()
@@ -48,11 +50,19 @@ def main():
                     messages.say(text)
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_b:
                 messages.say(castle.give(player))
+            elif event.type == pygame.KEYDOWN and castle.pending_cup and event.key in (pygame.K_y,pygame.K_n):
+                p = castle.pending_cup
+                messages.say(decision_cup(p["giver"],p["royal"], castle, event.key == pygame.K_y))
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_F1:
                 for o in castle.interactable:
                     if o.id == "royal_npc":
                         o.data["character"].set_flag("announced_king_death")
                         messages.say("DEBUG: The royal has announced the Death.")
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_F2 and ROLE == Role.ROYAL:
+                fake = Character("Servant", (0,0),PlayerState(Role.SERVANT))
+                fake.inventory.add_item("spiked_wine")
+                messages.say(offer_cup(fake, player, castle))
+
         if not castle.result:
             player.update(dt,navmesh)
         text = castle.update(dt)
@@ -94,6 +104,11 @@ def main():
                 line = font.render(text_line, True, (255,255,255))
                 screen.blit(line,line.get_rect(center=(WIDTH//2,y)))
                 y += line.get_height() + 4
+        if castle.pending_cup:
+            t = font.render("A servant offers you a cup of wine!  Y: Drink   N: Refuse", True, (255,255,120))
+            r = t.get_rect(center=(WIDTH//2,HEIGHT//2-120))
+            pygame.draw.rect(screen,(0,0,0),r.inflate(24,12))
+            screen.blit(t,r)
         pygame.display.flip()
     pygame.quit()
 

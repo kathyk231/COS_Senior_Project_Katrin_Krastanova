@@ -14,6 +14,7 @@ def royal_accepts(royal, giver):
     return suspicion_of(royal, giver) < SUSPICION_LIMIT
 
 def decision_cup(giver,royal,  world, accepted):
+    world.pending_cup = None
     if accepted:
         giver.inventory.remove_item("spiked_wine")
         royal.set_flag("drank_truth_serum")
@@ -27,5 +28,8 @@ def offer_cup(giver, royal, world):
         return "Only a servant can serve a Royal."
     if not giver.inventory.has("spiked_wine"):
         return "You have nothing to offer."
+    if royal.is_player:
+        world.pending_cup = {"giver": giver, "royal": royal}
+        return "A Servant offers you a cup of wine."
     return decision_cup(giver, royal, world, royal_accepts(royal, giver))
 

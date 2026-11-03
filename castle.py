@@ -15,6 +15,7 @@ class Castle:
         self.doors = []
         self.coronation = None
         self.result = None
+        self.pending_cup = None
         self.interactable = create_interactables() + create_npcs()
         self.props = create_props() + create_mushroom_trail()
         self.passage =[pygame.Rect(1712, 992, 96, 464)]

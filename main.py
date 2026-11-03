@@ -1,4 +1,5 @@
 import pygame
+import textwrap
 from player import Player
 from player_state import PlayerState, Role
 from castle import Castle
@@ -88,8 +89,11 @@ def main():
             screen.blit(shade,(0,0))
             title = big_font.render(f"{castle.result['winner'].upper()} WINS", True, (255,215,0))
             screen.blit(title, title.get_rect(center=(WIDTH//2,HEIGHT//2-20)))
-            line = font.render(castle.result['text'], True, (255,255,255))
-            screen.blit(line,line.get_rect(center=(WIDTH//2,HEIGHT//2+30)))
+            y = HEIGHT//2 +40
+            for text_line in textwrap.wrap(castle.result['text'], 60):
+                line = font.render(text_line, True, (255,255,255))
+                screen.blit(line,line.get_rect(center=(WIDTH//2,y)))
+                y += line.get_height() + 4
         pygame.display.flip()
     pygame.quit()
 

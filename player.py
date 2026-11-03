@@ -4,6 +4,7 @@ from character import Character
 class Player(Character):
     def __init__(self, position, state):
         super().__init__("Player", position, state)
+        self.is_player = True
 
     def update(self, dt, navmesh):
         keys = pygame.key.get_pressed()

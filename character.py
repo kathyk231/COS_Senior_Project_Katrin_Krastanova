@@ -12,6 +12,8 @@ class Character:
         self.inventory = Inventory()
         self.flags = set()
         self.room = None
+        self.suspicion = 0
+        self.is_player = False
 
     def can_stand(self, position, navmesh):
         r = self.radius

@@ -24,7 +24,7 @@ class Action:
 def plan(start, goal, actions, max_nodes= 20000):
     if satisfied(start,goal):
         return []
-    tie = itertools.count
+    tie = itertools.count()
     frontier = [(0,next(tie), start, [])]
     best = {state_key(start):0}
     expanded = 0
@@ -41,7 +41,7 @@ def plan(start, goal, actions, max_nodes= 20000):
             new_state = action.apply(state)
             new_cost = cost + action.cost
             key = state_key(new_state)
-            if new_cost < best.get(key):
+            if new_cost < best.get(key, float("inf")):
                 best[key] = new_cost
                 heapq.heappush(frontier, (new_cost, next(tie) ,new_state, steps + [action]))
     return None

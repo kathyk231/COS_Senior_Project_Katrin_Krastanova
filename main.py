@@ -21,7 +21,7 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
-    ROLE = Role.ROYAL
+    ROLE = Role.SERVANT
     player = Player((1068, 1960), PlayerState(ROLE))
     player.inventory.add_item("spiked_wine")
     characters = [player]

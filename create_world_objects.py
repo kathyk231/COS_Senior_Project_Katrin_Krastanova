@@ -45,11 +45,11 @@ def create_interactables():
     I("hay","Hay",(1556,1820,148,172),"Stable",verb="Pick up", gives="hay",
       found_text="You pick up some hay", empty_text="You do not need more hay"),
     I("water_bucket_1", "Water",(1717,1960,40,32),"Stable","pick up","water",
-      found_text="You pick up a water bucket", empty_text="You do not need more water."),
+      found_text="You pick up a water bucket", empty_text="You do not need more water.", sprite= "water"),
     I("water_bucket_2", "Water", (1761, 1960, 40, 32), "Stable", "pick up", "water",
-        found_text="You pick up a water bucket", empty_text="You do not need more water."),
+        found_text="You pick up a water bucket", empty_text="You do not need more water.", sprite= "water"),
     I("water_bucket_3", "Water", (1741, 1924, 40, 32), "Stable", "pick up", "water",
-        found_text="You pick up a water bucket", empty_text="You do not need more water."),
+        found_text="You pick up a water bucket", empty_text="You do not need more water.", sprite = "water"),
     I("king_wardrobe", "King's Wardrobe", (1556,336, 232,64), "Kings Room", verb="Open",
       found_text="There are no clothes missing from the wardrobe."),
     I("king_bed", "King's Bed", (1704,564,268, 204), "Kings Room", verb="Inspect",
@@ -183,5 +183,5 @@ def create_mushroom_trail():
             n+=1
             x = x1 + (x2-x1) *i / count
             y = y1 + (y2-y1) *i / count
-            props.append(Prop(f"mushroom_{n}", (int(x), int(y),20,20),"Woods",color=(210,60,60),solid=False))
+            props.append(Prop(f"mushroom_{n}", (int(x), int(y),24,24),"Woods",color=(210,60,60),solid=False, sprite="mushroom"))
     return props

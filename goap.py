@@ -49,6 +49,25 @@ class Agent:
             self.say(f"goal '{goal.name}': " + " > ".join(a.name for a in self.plan))
         else:
             self.say(f"goal '{goal.name}': no plan found.")
+    def step(self, state, execute):
+        for name in list(self.cooldowns):
+            self.cooldowns[name] += 1
+        goal = self.pick_goal(state)
+        if goal is None:
+            self.goal, self.plan = None, []
+            return None
+        if self.goal is None or goal.name != self.goal.name or not self.plan or not self.plan[0].applicable(state):
+            self.replan(state, goal)
+        if not self.plan:
+            return None
+        action = self.plan[0]
+        if execute(action):
+            self.plan.pop(0)
+        else:
+            self.say(f"{action.name} failed, replanning.")
+            self.cooldowns[action.name] = self.cooldown_steps
+            self.plan = []
+        return action
 class Action:
     def __init__(self, name, preconditions=None, effects=None, cost =1, roles= None, role_costs = None):
         self.name = name

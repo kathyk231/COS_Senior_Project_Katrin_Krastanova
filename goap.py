@@ -19,7 +19,36 @@ class Goal:
     def from_step(step, priority=1):
         return Goal(step.text, step.options, priority)
 
+class Agent:
+    def __init__(self, name, actions,goals, role=None, cooldown =20):
+        self.name = name
+        self.actions = actions
+        self.goals = goals
+        self.role = role
+        self.cooldown_steps = cooldown
+        self.cooldowns = {}
+        self.goal = None
+        self.plan = []
+        self.log = []
 
+    def say(self, text):
+        self.log.append(f"[{self.name}] {text}")
+        print(self.log[-1])
+
+    def pick_goal(self, state):
+        goals = self.goals() if callable(self.goals) else self.goals
+        avail_goals = [g for g in goals if not g.is_satisfied(state) and g.value(state)]
+        if not avail_goals:
+            return None
+        return max(avail_goals, key=lambda g: g.value(state))
+    def replan(self, state, goal):
+        found = plan_any(state, goal.options, self.actions, role=self.role)
+        self.goal = goal
+        self.plan = found or []
+        if found:
+            self.say(f"goal '{goal.name}': " + " > ".join(a.name for a in self.plan))
+        else:
+            self.say(f"goal '{goal.name}': no plan found.")
 class Action:
     def __init__(self, name, preconditions=None, effects=None, cost =1, roles= None, role_costs = None):
         self.name = name

@@ -54,3 +54,19 @@ def plan(start, goal, actions,role=None, max_nodes= 20000):
     return None
 def plan_cost(actions, role=None):
     return sum(a.cost_for(role) for a in actions)
+def plan_any(start, options, actions, role=None):
+    best = None
+    for option in options:
+        found = plan(start,option,actions,role=role)
+        if found is not None and (best is None or plan_cost(found,role) < plan_cost(best,role)):
+            best = found
+    return best
+def make_moves(edges, requires=None, cost =1, roles=None):
+    requires = requires or {}
+    moves = []
+    for a, b in edges:
+        extra = requires.get((a,b)) or requires.get((b,a))
+        for src, dst in ((a,b), (b,a)):
+            precond = {"room":src}
+            precond.update(extra)
+            moves.append(Action(f"go {src} -> {dst}",precond,{"room":dst},cost,roles=roles))

@@ -42,7 +42,8 @@ class Agent:
             return None
         return max(avail_goals, key=lambda g: g.value(state))
     def replan(self, state, goal):
-        found = plan_any(state, goal.options, self.actions, role=self.role)
+        usable = [a for a in self.actions if self.cooldowns.get(a.name,0) <= 0]
+        found = plan_any(state, goal.options, usable, role=self.role)
         self.goal = goal
         self.plan = found or []
         if found:
@@ -51,7 +52,7 @@ class Agent:
             self.say(f"goal '{goal.name}': no plan found.")
     def step(self, state, execute):
         for name in list(self.cooldowns):
-            self.cooldowns[name] += 1
+            self.cooldowns[name] -= 1
         goal = self.pick_goal(state)
         if goal is None:
             self.goal, self.plan = None, []

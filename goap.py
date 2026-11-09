@@ -65,8 +65,9 @@ def make_moves(edges, requires=None, cost =1, roles=None):
     requires = requires or {}
     moves = []
     for a, b in edges:
-        extra = requires.get((a,b)) or requires.get((b,a))
+        extra = requires.get((a,b)) or requires.get((b,a)) or {}
         for src, dst in ((a,b), (b,a)):
             precond = {"room":src}
             precond.update(extra)
             moves.append(Action(f"go {src} -> {dst}",precond,{"room":dst},cost,roles=roles))
+    return moves

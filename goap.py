@@ -5,6 +5,20 @@ def satisfied(state,conditions):
     return all(state.get(k) == v for k, v in conditions.items())
 def state_key(state):
     return frozenset(state.items())
+class Goal:
+    def __init__(self, name, options, priority=1):
+        self.name = name
+        self.options = [options] if isinstance(options, dict) else list(options)
+        self.priority = priority
+
+    def value(self, state):
+        return self.priority(state) if callable(self.priority) else self.priority
+    def is_satisfied(self, state):
+        return any(satisfied(state, o) for o in self.options)
+    @staticmethod
+    def from_step(step, priority=1):
+        return Goal(step.text, step.options, priority)
+
 
 class Action:
     def __init__(self, name, preconditions=None, effects=None, cost =1, roles= None, role_costs = None):

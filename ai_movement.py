@@ -12,6 +12,8 @@ class NavGrid:
         self.rows = height // cell +1
         self.radius = radius
         self.free= set()
+        self.gates = {}
+        self.build()
 
     def build(self):
         for cy in range(self.rows):
@@ -52,3 +54,39 @@ class NavGrid:
             if dx and dy and not (self.passable((cell[0] + dx, cell[1] + dy), character)):
                 continue
             yield nxt, (1.414 if dx and dy else 1.0)
+    def find_path(self, start, goal, character=None):
+        start = self.nearest_passable(self.cell_of(start), character)
+        goal = self.nearest_passable(self.cell_of(goal), character)
+        if start is None or goal is None:
+            return None
+        heap = [(0.0,0.0, start)]
+        came = {start: None}
+        cost = {start: 0.0}
+        while heap:
+            _, c0, current = heapq.heappop(heap)
+            if current == goal:
+                break
+            if c0 > cost[current]:
+                continue
+            for nxt,step in self.neighbors(current, character):
+                new = cost[current] + step
+                if new < cost[nxt]:
+                    cost[nxt] = new
+                    came[nxt] = current
+                    dx,dy= abs(nxt[0] - goal[0]), abs(nxt[1] - goal[1])
+                    h = (dx+dy) - 0.586 *min(dx,dy)
+                    heapq.heappush(heap,(new+h,new, nxt))
+        if goal not in came:
+            return None
+        cells =[]
+        current = goal
+        while current is not None:
+            cells.append(current)
+            current = came[current]
+        cells.reverse()
+        doors= []
+        for cell in cells:
+            d = self.gates.get(cell)
+            if d is not None and d not in doors:
+                doors.append(d)
+        return doors

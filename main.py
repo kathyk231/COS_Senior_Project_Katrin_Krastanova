@@ -1,5 +1,6 @@
 import pygame
 import textwrap
+import time
 from player import Player
 from player_state import PlayerState, Role
 from castle import Castle
@@ -11,6 +12,7 @@ from royal_quests import create_royal_quests
 from npcs import create_r_standin
 from confession import decision_cup, offer_cup
 from character import Character
+from ai_movement import NavGrid
 
 WIDTH, HEIGHT, FPS = 960, 540, 60
 
@@ -36,6 +38,11 @@ def main():
     solids = [o.rect for o in castle.interactable if o.solid]
     solids += [p.rect for p in castle.props if p.solid]
     navmesh.bake(castle.rooms, castle.doors, castle.passage,solids)
+    t0 = time.time()
+    grid = NavGrid(navmesh, castle.width, castle.height)
+    print(f"grid built in {time.time() - t0:.2f}s, {len(grid.free)} free cells")
+    path = None
+    show_grid = False
     running = True
     while running:
         dt = clock.tick(FPS)/1000.0
@@ -62,6 +69,12 @@ def main():
                 fake = Character("Servant", (0,0),PlayerState(Role.SERVANT))
                 fake.inventory.add_item("spiked_wine")
                 messages.say(offer_cup(fake, player, castle))
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_F3:
+                show_grid = not show_grid
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                cam = pygame.Vector2(player.position.x - WIDTH/2, player.position.y - HEIGHT/2)
+                path = grid.find_path(player.position, pygame.Vector2(event.pos) + cam, player)
+                print("path:", "none" if path is None else f"{len(path[0])} waypoints")
 
         if not castle.result:
             player.update(dt,navmesh)
@@ -109,6 +122,16 @@ def main():
             r = t.get_rect(center=(WIDTH//2,HEIGHT//2-120))
             pygame.draw.rect(screen,(0,0,0),r.inflate(24,12))
             screen.blit(t,r)
+        if show_grid:
+            c = grid.cell
+            for cx in range(int(camera.x // c), int(camera.x + WIDTH) + 1):
+                for cy in range(int(camera.y // c), int(camera.y + HEIGHT) + 1):
+                    if (cx,cy)in grid.free:
+                        px,py = grid.center(cx,cy)
+                        pygame.draw.circle(screen,(0,160,0),(int(px-camera.x),int(py-camera.y)),2)
+        if path:
+            points = [player.position] +path[0]
+            pygame.draw.lines(screen,(0,0,0),False,[(p.x - camera.x, p.y - camera.y) for p in points],3)
         pygame.display.flip()
     pygame.quit()
 

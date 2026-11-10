@@ -44,6 +44,14 @@ class NavmeshManager:
         if any(w.collidepoint(point) for w in self.walls):
             return any(d.is_open and r.collidepoint(point) for d,r in self.openings)
         return True
+    def body_free(self, x,y, r):
+        body = pygame.Rect(int(x-r), int(y-r), 2*r, 2*r)
+        if body.collidepoint(self.solids) != -1 and body.collidepoint(self.walls) != -1:
+            return False
+        for ox, oy in ((0,0), (r,0),(-r,0),(0,r), (0,-r)):
+            if pygame.Rect(int(x+ox),int(y+oy),1,1).collidelist(self.areas) == -1:
+                return False
+        return True
     def draw(self, screen,camera):
         off =(-int(camera.x),-int(camera.y))
 

@@ -23,3 +23,32 @@ class NavGrid:
         return (int(p[0] / self.cell),int(p[1] / self.cell))
     def center(self,cx,cy):
         return ((cx*0.5)*self.cell,(cy*0.5)*self.cell)
+
+    def passable(self, cell, character=None):
+        return cell in self.free
+    def nearest_passable(self, cell, character=None, max_ring=6):
+        if self.passable(cell, character):
+            return cell
+        for ring in range(1,max_ring+1):
+            best =None
+            for dx in range(-ring,ring+1):
+                for dy in range(-ring,ring+1):
+                    if max(abs(dx),abs(dy)) != ring:
+                        continue
+                    c = (cell[0] + dx, cell[1] + dy)
+                    if self.passable(c, character):
+                        d = dx*dx + dy*dy
+                        if best is None or d < best[0]:
+                            best = (d,c)
+            if best:
+                return best[1]
+        return None
+
+    def neighbors(self, cell, character):
+        for dx,dy in DIRS:
+            nxt = (cell[0] + dx, cell[1] + dy)
+            if not self.passable(nxt, character):
+                continue
+            if dx and dy and not (self.passable((cell[0] + dx, cell[1] + dy), character)):
+                continue
+            yield nxt, (1.414 if dx and dy else 1.0)

@@ -89,4 +89,16 @@ class NavGrid:
             d = self.gates.get(cell)
             if d is not None and d not in doors:
                 doors.append(d)
-        return doors
+        return self.simplify(cells), doors
+
+    def simplify(self, cells):
+        if len(cells) <= 1:
+            return [pygame.Vector2(self.center(*cells[0]))]
+        keep = []
+        for i in range(1, len(cells) - 1):
+            d1 = (cells[i][0] - cells[i - 1][0], cells[i][1] - cells[i - 1][1])
+            d2 = (cells[i + 1][0] - cells[i][0], cells[i + 1][1] - cells[i][1])
+            if d1 != d2:
+                keep.append(cells[i])
+        keep.append(cells[-1])
+        return [pygame.Vector2(self.center(*c)) for c in keep]

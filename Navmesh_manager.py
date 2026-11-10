@@ -46,7 +46,7 @@ class NavmeshManager:
         return True
     def body_free(self, x,y, r):
         body = pygame.Rect(int(x-r), int(y-r), 2*r, 2*r)
-        if body.collidepoint(self.solids) != -1 and body.collidepoint(self.walls) != -1:
+        if body.collidelist(self.solids) != -1 or body.collidelist(self.walls) != -1:
             return False
         for ox, oy in ((0,0), (r,0),(-r,0),(0,r), (0,-r)):
             if pygame.Rect(int(x+ox),int(y+oy),1,1).collidelist(self.areas) == -1:

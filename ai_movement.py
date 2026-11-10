@@ -22,9 +22,9 @@ class NavGrid:
                 if self.navmesh.body_free(x, y, self.radius):
                     self.free.add((cx,cy))
     def cell_of(self,p):
-        return (int(p[0] / self.cell),int(p[1] / self.cell))
+        return (int(p[0] // self.cell),int(p[1] // self.cell))
     def center(self,cx,cy):
-        return ((cx*0.5)*self.cell,(cy*0.5)*self.cell)
+        return ((cx+0.5)*self.cell,(cy+0.5)*self.cell)
 
     def passable(self, cell, character=None):
         return cell in self.free
@@ -51,7 +51,7 @@ class NavGrid:
             nxt = (cell[0] + dx, cell[1] + dy)
             if not self.passable(nxt, character):
                 continue
-            if dx and dy and not (self.passable((cell[0] + dx, cell[1] + dy), character)):
+            if dx and dy and not (self.passable((cell[0] + dx, cell[1]), character), self.passable((cell[0], cell[1] + dy), character)):
                 continue
             yield nxt, (1.414 if dx and dy else 1.0)
     def find_path(self, start, goal, character=None):
@@ -70,7 +70,7 @@ class NavGrid:
                 continue
             for nxt,step in self.neighbors(current, character):
                 new = cost[current] + step
-                if new < cost[nxt]:
+                if new < cost.get(nxt, float('inf')):
                     cost[nxt] = new
                     came[nxt] = current
                     dx,dy= abs(nxt[0] - goal[0]), abs(nxt[1] - goal[1])
@@ -92,7 +92,7 @@ class NavGrid:
         return self.simplify(cells), doors
 
     def simplify(self, cells):
-        if len(cells) <= 1:
+        if len(cells) == 1:
             return [pygame.Vector2(self.center(*cells[0]))]
         keep = []
         for i in range(1, len(cells) - 1):

@@ -51,8 +51,8 @@ class Agent:
         if found:
             self.say(f"goal '{goal.name}': " + " > ".join(a.name for a in self.plan))
         else:
-            self.say(f"goal '{goal.name}': no plan found.")
             self.wait =60
+            self.say(f"goal '{goal.name}': no plan found.")
     def step(self, state, execute):
         for name in list(self.cooldowns):
             self.cooldowns[name] -= 1
@@ -67,9 +67,15 @@ class Agent:
                 return action
             self.running, self.goal, self.plan = None, None, []
             return action
-
-        if self.goal is None or goal.name != self.goal.name or not self.plan or not self.plan[0].applicable(state):
-            self.replan(state, goal)
+        if self.goal is None or goal.name != self.goal.name:
+            self.wait = 0
+            self.running = None
+        if self.wait >0:
+            self.wait -= 1
+            return None
+        if self.running is None:
+            if self.goal is None or goal.name != self.goal.name or not self.plan or not self.plan[0].applicable(state):
+                self.replan(state, goal)
         if not self.plan:
             return None
         action = self.plan[0]

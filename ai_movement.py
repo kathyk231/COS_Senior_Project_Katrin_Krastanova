@@ -70,8 +70,8 @@ class MovementRunner:
             return False
         if self.current is not action:
             self.current = action
-            self.walker.go_to(room)
-        status = self.walker.status()
+            self.walker.go_to(self.anchors[room])
+        status = self.walker.status
         if status == "arrived":
             self.current = None
             self.walker.stop()

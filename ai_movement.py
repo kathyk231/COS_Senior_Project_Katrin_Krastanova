@@ -4,6 +4,11 @@ import heapq
 CELL = 16
 DIRS = [(1,0),(-1,0),(0,1),(0,-1),(1,1),(-1,-1),(1,-1),(-1,1)]
 
+def door_ok(door, character):
+    if door.hidden or door.locked:
+        return False
+    return door.is_open or door.can_open(character)
+
 class NavGrid:
     def __init__(self, navmesh, width, height, cell=CELL, radius=12):
         self.cell = cell
@@ -21,13 +26,25 @@ class NavGrid:
                 x,y = self.center(cx,cy)
                 if self.navmesh.body_free(x, y, self.radius):
                     self.free.add((cx,cy))
+        c = self.cell
+        for door, rect in self.navmesh.openings:
+            for cy in range(rect.top // c, rect.bottom// c):
+                for cx in range(rect.left // c, rect.right // c):
+                    cell =(cx,cy)
+                    if cell in self.free or cell in self.gates:
+                        continue
+                    if rect.collidepoint(cx,cy) and self.navmesh.body_free_through(cx,cy, self.radius, door):
+                        self.gates[cell] = door
     def cell_of(self,p):
         return (int(p[0] // self.cell),int(p[1] // self.cell))
     def center(self,cx,cy):
         return ((cx+0.5)*self.cell,(cy+0.5)*self.cell)
 
     def passable(self, cell, character=None):
-        return cell in self.free
+        if cell in self.free:
+            return True
+        door = self.gates.get(cell)
+        return door is not None and character is not None and door_ok(door, character)
     def nearest_passable(self, cell, character=None, max_ring=6):
         if self.passable(cell, character):
             return cell

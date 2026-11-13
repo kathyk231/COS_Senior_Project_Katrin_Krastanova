@@ -35,14 +35,14 @@ class NavmeshManager:
                     blocked = True
                     break
             door.update(dt,blocked)
-    def is_walkable(self, position):
+    def is_walkable(self, position, open_doors =()):
         point = (position.x, position.y)
         if not any(a.collidepoint(point) for a in self.areas):
             return False
         if any(s.collidepoint(point) for s in self.solids):
             return False
         if any(w.collidepoint(point) for w in self.walls):
-            return any(d.is_open and r.collidepoint(point) for d,r in self.openings)
+            return any((d.is_open or d in open_doors) and r.collidepoint(point) for d,r in self.openings)
         return True
     def body_free(self, x,y, r):
         body = pygame.Rect(int(x-r), int(y-r), 2*r, 2*r)
@@ -52,6 +52,11 @@ class NavmeshManager:
             if pygame.Rect(int(x+ox),int(y+oy),1,1).collidelist(self.areas) == -1:
                 return False
         return True
+    def body_free_through(self, x, y, r, door):
+        body = pygame.Rect(int(x-r), int(y-r), 2*r, 2*r)
+        if body.collidelist(self.solids) != -1:
+            return False
+        return all(self.is_walkable(pygame.Vector2(x+ox, y+oy),open_doors=(door,)) for ox, oy in ((0,0), (r,0),(-r,0),(0,r), (0,-r)))
     def draw(self, screen,camera):
         off =(-int(camera.x),-int(camera.y))
 

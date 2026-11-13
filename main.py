@@ -129,6 +129,9 @@ def main():
                     if (cx,cy)in grid.free:
                         px,py = grid.center(cx,cy)
                         pygame.draw.circle(screen,(0,160,0),(int(px-camera.x),int(py-camera.y)),2)
+                    elif (cx,cy) in grid.gates:
+                        px,py = grid.center(cx,cy)
+                        pygame.draw.circle(screen, (255,140,0),(int(px-camera.x),int(py-camera.y)),3)
         if path:
             points = [player.position] +path[0]
             pygame.draw.lines(screen,(0,0,0),False,[(p.x - camera.x, p.y - camera.y) for p in points],3)

@@ -1,8 +1,6 @@
 import pygame
 import heapq
 
-import character
-
 CELL = 16
 DIRS = [(1,0),(-1,0),(0,1),(0,-1),(1,1),(-1,-1),(1,-1),(-1,1)]
 DOOR_REACH = 40

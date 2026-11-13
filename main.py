@@ -12,7 +12,7 @@ from royal_quests import create_royal_quests
 from npcs import create_r_standin
 from confession import decision_cup, offer_cup
 from character import Character
-from ai_movement import NavGrid
+from ai_movement import NavGrid, Walker
 
 WIDTH, HEIGHT, FPS = 960, 540, 60
 
@@ -40,6 +40,11 @@ def main():
     navmesh.bake(castle.rooms, castle.doors, castle.passage,solids)
     t0 = time.time()
     grid = NavGrid(navmesh, castle.width, castle.height)
+    ai = Character("Royal", (1068,880), PlayerState(Role.ROYAL))
+    ai.color = (60,160,90)
+    characters.append(ai)
+    walker = Walker(ai,grid)
+    last_status ="idle"
     print(f"grid built in {time.time() - t0:.2f}s, {len(grid.free)} free cells")
     path = None
     show_grid = False
@@ -73,11 +78,14 @@ def main():
                 show_grid = not show_grid
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 cam = pygame.Vector2(player.position.x - WIDTH/2, player.position.y - HEIGHT/2)
-                path = grid.find_path(player.position, pygame.Vector2(event.pos) + cam, player)
-                print("path:", "none" if path is None else f"{len(path[0])} waypoints")
+                walker.go_to(pygame.Vector2(event.pos) + cam)
 
         if not castle.result:
             player.update(dt,navmesh)
+            walker.update(dt,navmesh)
+            if walker.status != last_status:
+                print("AI:", walker.status)
+                last_status = walker.status
         text = castle.update(dt)
         if text:
             messages.say(text)
@@ -132,9 +140,9 @@ def main():
                     elif (cx,cy) in grid.gates:
                         px,py = grid.center(cx,cy)
                         pygame.draw.circle(screen, (255,140,0),(int(px-camera.x),int(py-camera.y)),3)
-        if path:
-            points = [player.position] +path[0]
-            pygame.draw.lines(screen,(0,0,0),False,[(p.x - camera.x, p.y - camera.y) for p in points],3)
+        if walker.points:
+            pts = [ai.position] + walker.points
+            pygame.draw.lines(screen,(0,0,0),False,[(p.x - camera.x, p.y - camera.y) for p in pts],3)
         pygame.display.flip()
     pygame.quit()
 

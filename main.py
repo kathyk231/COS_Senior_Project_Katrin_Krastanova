@@ -46,7 +46,6 @@ def main():
     ai.color = (60,160,90)
     characters.append(ai)
     walker = Walker(ai,grid)
-    last_status ="idle"
     anchors = {r["name"]: grid.anchor(r["rect"].center) for r in castle.rooms}
     runner = MovementRunner(walker, anchors)
     EDGES = [("Throne Room", "Corridor"), ("Corridor", "Royal Room"), ("Corridor", "Queens Room"),("Throne Room", "Kings Room"), ("Throne Room", "Entrance Hall"), ("Entrance Hall", "Stable")]
@@ -91,9 +90,6 @@ def main():
             if agent.step(ai.facts(), runner) is None:
                 runner.cancel()
             walker.update(dt,navmesh)
-            if walker.status != last_status:
-                print("AI:", walker.status)
-                last_status = walker.status
         text = castle.update(dt)
         if text:
             messages.say(text)

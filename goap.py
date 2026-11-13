@@ -32,10 +32,15 @@ class Agent:
         self.log = []
         self.running = None
         self.wait = 0
-
+        self.printed = set()
     def say(self, text):
-        self.log.append(f"[{self.name}] {text}")
-        print(self.log[-1])
+        entry = f"[{self.name}] {text}"
+        self.log.append(entry)
+        if len(self.log) >200:
+            del self.log[:500]
+        if entry not in self.printed:
+            self.printed.add(entry)
+            print(entry)
 
     def pick_goal(self, state):
         goals = self.goals() if callable(self.goals) else self.goals
@@ -70,6 +75,7 @@ class Agent:
         if self.goal is None or goal.name != self.goal.name:
             self.wait = 0
             self.running = None
+            self.printed.clear()
         if self.wait >0:
             self.wait -= 1
             return None

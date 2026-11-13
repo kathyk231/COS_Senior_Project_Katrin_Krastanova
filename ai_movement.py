@@ -6,6 +6,7 @@ import character
 CELL = 16
 DIRS = [(1,0),(-1,0),(0,1),(0,-1),(1,1),(-1,-1),(1,-1),(-1,1)]
 DOOR_REACH = 40
+ARRIVE = 6
 class Walker:
     def __init__(self, character, grid):
         self.character = character
@@ -25,7 +26,7 @@ class Walker:
         self.status = "idle"
         self.points, self.doors = [], []
     def _plan(self):
-        found = self.grid.find_path(self.last_pos, self.target, character=self.character)
+        found = self.grid.find_path(self.character.position, self.target, self.character)
         if found is None:
             self.points, self.doors = [], []
             self.status ="failed"
@@ -43,11 +44,22 @@ class Walker:
                 if not door.open_door(ch):
                     self.status = "failed"
                     return self.status
+        while self.points and ch.position.distance_to(self.points[0]) < ARRIVE:
+            self.points.pop(0)
         if not self.points:
             self.status = "arrived"
             return self.status
         ch.move(self.points[0] - ch.position, dt, navmesh)
         self.stuck_time += dt
+        if ch.position.distance_to(self.last_pos) > 6:
+            self.last_pos = pygame.Vector2(ch.position)
+            self.stuck_time = 0.0
+        elif self.stuck_time > 1.0:
+            self.repaths += 1
+            if self.repaths > 2:
+                self.status = "failed"
+            else:
+                self._plan()
         return self.status
 
 def door_ok(door, character):

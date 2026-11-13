@@ -59,7 +59,30 @@ class Walker:
             else:
                 self._plan()
         return self.status
-
+class MovementRunner:
+    def __init__(self, walker, anchors):
+        self.walker = walker
+        self.anchors = anchors
+        self.current = None
+    def __call__(self, action):
+        room = action.data.get("goto_room")
+        if room is None:
+            return False
+        if self.current is not action:
+            self.current = action
+            self.walker.go_to(room)
+        status = self.walker.status()
+        if status == "arrived":
+            self.current = None
+            self.walker.stop()
+            return True
+        if status == "failed":
+            self.current = None
+            return False
+        return "running"
+    def cancel(self):
+        self.current = None
+        self.walker.stop()
 def door_ok(door, character):
     if door.hidden or door.locked:
         return False
@@ -128,6 +151,9 @@ class NavGrid:
             if dx and dy and not (self.passable((cell[0] + dx, cell[1]), character), self.passable((cell[0], cell[1] + dy), character)):
                 continue
             yield nxt, (1.414 if dx and dy else 1.0)
+    def anchor(self, point):
+        cell = self.nearest_passable(self.cell_of(point), None, max_ring=20)
+        return pygame.Vector2(self.center(*cell))
     def find_path(self, start, goal, character=None):
         start = self.nearest_passable(self.cell_of(start), character)
         goal = self.nearest_passable(self.cell_of(goal), character)

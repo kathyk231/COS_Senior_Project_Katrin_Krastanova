@@ -30,6 +30,8 @@ class Agent:
         self.goal = None
         self.plan = []
         self.log = []
+        self.running = None
+        self.wait = 0
 
     def say(self, text):
         self.log.append(f"[{self.name}] {text}")
@@ -50,19 +52,33 @@ class Agent:
             self.say(f"goal '{goal.name}': " + " > ".join(a.name for a in self.plan))
         else:
             self.say(f"goal '{goal.name}': no plan found.")
+            self.wait =60
     def step(self, state, execute):
         for name in list(self.cooldowns):
             self.cooldowns[name] -= 1
         goal = self.pick_goal(state)
         if goal is None:
-            self.goal, self.plan = None, []
-            return None
+            if self.running is None:
+                self.goal, self.plan = None, []
+                return None
+            action = self.running
+            result = execute(action)
+            if result == "running":
+                return action
+            self.running, self.goal, self.plan = None, None, []
+            return action
+
         if self.goal is None or goal.name != self.goal.name or not self.plan or not self.plan[0].applicable(state):
             self.replan(state, goal)
         if not self.plan:
             return None
         action = self.plan[0]
-        if execute(action):
+        self.running = action
+        result = execute(action)
+        if result == "running":
+            return action
+        self.running = None
+        if result:
             self.plan.pop(0)
         else:
             self.say(f"{action.name} failed, replanning.")
@@ -70,13 +86,14 @@ class Agent:
             self.plan = []
         return action
 class Action:
-    def __init__(self, name, preconditions=None, effects=None, cost =1, roles= None, role_costs = None):
+    def __init__(self, name, preconditions=None, effects=None, cost =1, roles= None, role_costs = None, data=None):
         self.name = name
         self.preconditions = preconditions or {}
         self.effects = effects or {}
         self.cost = cost
         self.roles = set(roles) if roles else None
         self.role_costs = role_costs or {}
+        self.data = data or {}
     def allowed_for(self, role):
         return self.roles is None or role is None or role in self.roles
     def cost_for(self, role):
@@ -132,5 +149,5 @@ def make_moves(edges, requires=None, cost =1, roles=None):
         for src, dst in ((a,b), (b,a)):
             precond = {"room":src}
             precond.update(extra)
-            moves.append(Action(f"go {src} -> {dst}",precond,{"room":dst},cost,roles=roles))
+            moves.append(Action(f"go {src} -> {dst}",precond,{"room":dst},cost,roles=roles, data={"goto_room":dst}))
     return moves

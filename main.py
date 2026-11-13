@@ -1,6 +1,8 @@
 import pygame
 import textwrap
 import time
+
+from goap import Agent, make_moves, Goal
 from player import Player
 from player_state import PlayerState, Role
 from castle import Castle
@@ -12,7 +14,7 @@ from royal_quests import create_royal_quests
 from npcs import create_r_standin
 from confession import decision_cup, offer_cup
 from character import Character
-from ai_movement import NavGrid, Walker
+from ai_movement import NavGrid, Walker, MovementRunner
 
 WIDTH, HEIGHT, FPS = 960, 540, 60
 
@@ -45,8 +47,13 @@ def main():
     characters.append(ai)
     walker = Walker(ai,grid)
     last_status ="idle"
+    anchors = {r["name"]: grid.anchor(r["rect"].center) for r in castle.rooms}
+    runner = MovementRunner(walker, anchors)
+    EDGES = [("Throne Room", "Corridor"), ("Corridor", "Royal Room"), ("Corridor", "Queens Room"),("Throne Room", "Kings Room"), ("Throne Room", "Entrance Hall"), ("Entrance Hall", "Stable")]
+    want = {"room": None}
+    agent = Agent("Royal", make_moves(EDGES), lambda: [Goal("be in" + want["room"], {"room": want["room"]})] if want["room"] else [], Role.ROYAL, cooldown=300 )
+    R_KEYS = {pygame.K_1: "Royal Room", pygame.K_2: "Kings Room", pygame.K_3: "Entrance Hall", pygame.K_4: "Stable", pygame.K_5: "Queens Room"}
     print(f"grid built in {time.time() - t0:.2f}s, {len(grid.free)} free cells")
-    path = None
     show_grid = False
     running = True
     while running:
@@ -76,12 +83,13 @@ def main():
                 messages.say(offer_cup(fake, player, castle))
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_F3:
                 show_grid = not show_grid
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                cam = pygame.Vector2(player.position.x - WIDTH/2, player.position.y - HEIGHT/2)
-                walker.go_to(pygame.Vector2(event.pos) + cam)
+            elif event.type == pygame.KEYDOWN and event.key in R_KEYS:
+                want["room"] = R_KEYS[event.key]
 
         if not castle.result:
             player.update(dt,navmesh)
+            if agent.step(ai.facts(), runner) is None:
+                runner.cancel()
             walker.update(dt,navmesh)
             if walker.status != last_status:
                 print("AI:", walker.status)

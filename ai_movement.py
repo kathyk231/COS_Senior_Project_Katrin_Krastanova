@@ -1,8 +1,54 @@
 import pygame
 import heapq
 
+import character
+
 CELL = 16
 DIRS = [(1,0),(-1,0),(0,1),(0,-1),(1,1),(-1,-1),(1,-1),(-1,1)]
+DOOR_REACH = 40
+class Walker:
+    def __init__(self, character, grid):
+        self.character = character
+        self.grid = grid
+        self.status = "idle"
+        self.target = None
+        self.repaths = 0
+        self.points = []
+        self.doors = []
+        self.stuck_time =0.0
+        self.last_pos =pygame.Vector2(character.position)
+    def go_to(self, point):
+        self.target = pygame.Vector2(point)
+        self.repaths = 0
+        self._plan()
+    def stop(self):
+        self.status = "idle"
+        self.points, self.doors = [], []
+    def _plan(self):
+        found = self.grid.find_path(self.last_pos, self.target, character=self.character)
+        if found is None:
+            self.points, self.doors = [], []
+            self.status ="failed"
+            return
+        self.points, self.doors = found
+        self.status = "walking"
+        self.stuck_time =0.0
+        self.last_pos = pygame.Vector2(self.character.position)
+    def update(self, dt, navmesh):
+        if self.status != "walking":
+            return self.status
+        ch = self.character
+        for door in self.doors:
+            if not door.is_open and ch.position.distance_to(door.position) < DOOR_REACH:
+                if not door.open_door(ch):
+                    self.status = "failed"
+                    return self.status
+        if not self.points:
+            self.status = "arrived"
+            return self.status
+        ch.move(self.points[0] - ch.position, dt, navmesh)
+        self.stuck_time += dt
+        return self.status
 
 def door_ok(door, character):
     if door.hidden or door.locked:
@@ -28,12 +74,13 @@ class NavGrid:
                     self.free.add((cx,cy))
         c = self.cell
         for door, rect in self.navmesh.openings:
-            for cy in range(rect.top // c, rect.bottom// c):
-                for cx in range(rect.left // c, rect.right // c):
+            for cy in range(rect.top // c, rect.bottom// c +1 ):
+                for cx in range(rect.left // c, rect.right // c + 1):
                     cell =(cx,cy)
                     if cell in self.free or cell in self.gates:
                         continue
-                    if rect.collidepoint(cx,cy) and self.navmesh.body_free_through(cx,cy, self.radius, door):
+                    x, y = self.center(cx,cy)
+                    if rect.collidepoint(x,y) and self.navmesh.body_free_through(x,y, self.radius, door):
                         self.gates[cell] = door
     def cell_of(self,p):
         return (int(p[0] // self.cell),int(p[1] // self.cell))

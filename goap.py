@@ -118,14 +118,30 @@ class Action:
         return new
     def __repr__(self):
         return f"Action({self.name})"
+def relevant_facts(goal,actions):
+    relevant = set(goal)
+    changed = True
+    while changed:
+        changed = False
+        for a in actions:
+            if relevant.intersection(a.effects):
+                missing = set(a.preconditions) - relevant
+                if missing:
+                    relevant |= missing
+                    changed = True
+    return relevant
+def project(state, relevant):
+    return frozenset((k,v) for k,v in state.items() if k in relevant)
 
 def plan(start, goal, actions,role=None, max_nodes= 20000):
     actions = [a for a in actions if a.allowed_for(role)]
     if satisfied(start,goal):
         return []
+    relevant = relevant_facts(goal,actions)
+    actions = [a for a in actions if relevant.intersection(a.effects)]
     tie = itertools.count()
     frontier = [(0,next(tie), start, [])]
-    best = {state_key(start):0}
+    best = {project(start, relevant):0}
     expanded = 0
     while frontier:
         cost, _, state, steps = heapq.heappop(frontier)
@@ -139,7 +155,7 @@ def plan(start, goal, actions,role=None, max_nodes= 20000):
                 continue
             new_state = action.apply(state)
             new_cost = cost + action.cost_for(role)
-            key = state_key(new_state)
+            key = project(new_state, relevant)
             if new_cost < best.get(key, float("inf")):
                 best[key] = new_cost
                 heapq.heappush(frontier, (new_cost, next(tie) ,new_state, steps + [action]))

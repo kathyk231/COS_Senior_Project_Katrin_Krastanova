@@ -154,6 +154,19 @@ class NavGrid:
     def anchor(self, point):
         cell = self.nearest_passable(self.cell_of(point), None, max_ring=20)
         return pygame.Vector2(self.center(*cell))
+    def stand_point(self, obj, reach=26):
+        r = obj.rect
+        c = self.cell
+        best = None
+        for cy in range((r.top - reach) // c - 1, (r.bottom + reach) // c + 2):
+            for cx in range((r.left - reach) // c -1 , (r.right + reach) // c + 2):
+                if (cx,cy) not in self.free:
+                    continue
+                p = pygame.Vector2(self.center(cx,cy))
+                d = obj.distance_to(p)
+                if d <= reach and (best is None or d < best[0]):
+                    best = (d, p)
+        return best[1] if best else None
     def find_path(self, start, goal, character=None):
         start = self.nearest_passable(self.cell_of(start), character)
         goal = self.nearest_passable(self.cell_of(goal), character)

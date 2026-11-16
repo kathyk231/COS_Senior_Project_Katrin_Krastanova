@@ -3,6 +3,8 @@ from goap import Action
 from player_state import Role
 
 ROLES = list(Role)
+SERUM = ["potion_bottle", "truth_berry", "light_essence", "tooth_leaf", "phoenix feather"]
+EVIDENCE = ["overturned_cup", "empty_bottle", "suspicious_robe", "letters"]
 
 def world_facts(castle):
     facts = {}
@@ -69,4 +71,23 @@ def build_world_actions(castle, anchors):
     skip = {a.data["object"] for a in specials}
     return door_actions(castle, anchors) + plain_object_actions(castle, skip) + specials
 def special_actions(castle):
-    return []
+    where = {o.id: o.room for o in castle.interactable}
+    R, S = Role.ROYAL, Role.SERVANT
+    out = []
+    def AS(label, obj, pre, eff, roles = None, cost=1, kind = "use", wait=0, item= None):
+        if obj not in where:
+            return
+        data = {"kind": kind, "object": obj}
+        if wait:
+            data["wait"] = wait
+        if item:
+            data["item"] = item
+        out.append(Action(f"{label} [{obj}]", {"room":where[obj],**pre}, eff, cost, roles=roles, data=data))
+    for obj, item in (("royal_nightstand", "empty_bottle"), ("queen_desk", "letters"), ("king_nightstand", "overturned_cup"), ("king_vanity", "suspicious_robe")):
+        AS("examine", obj, {},{"searched_" + obj: True}, roles={S}),
+        AS("take evidence", obj, {}, {"has_" +obj: True}, roles={R})
+    AS("examine", "king_carpet", {}, {"searched_king_carpet": True}, roles={S})
+    AS("scrub", "king_carpet", {"has_water":True}, {"removed_king_carpet":True, "has_water":False}, roles={R})
+
+    return out
+

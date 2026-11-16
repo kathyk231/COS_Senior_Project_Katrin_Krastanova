@@ -7,7 +7,7 @@ def create_world(with_standin = False):
     castle = Castle()
     if with_standin:
         castle.interactable.append(create_r_standin())
-    navmesh = NavmeshManager
+    navmesh = NavmeshManager()
     solids = [o.rect for o in castle.interactable if o.solid]
     solids += [p.rect for p in castle.props if p.solid]
     navmesh.bake(castle.rooms,castle.doors, castle.passage, solids)

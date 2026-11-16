@@ -43,7 +43,7 @@ def door_actions(castle, anchors):
             dist = anchors[src].distance_to(anchors[dst])
             cost = round(1+dist / 300, 1)
             for role in ROLES:
-                for label, extra in door_options(castle, role):
+                for label, extra in door_options(door, role):
                     pre = {"room":src, **extra}
                     if door.hidden:
                         pre["passage_revealed"] = True
@@ -65,4 +65,8 @@ def plain_object_actions(castle, skip):
     return actions
 
 def build_world_actions(castle, anchors):
-    return door_actions(castle, anchors) + plain_object_actions(castle, skip)
+    specials = special_actions(castle)
+    skip = {a.data["object"] for a in specials}
+    return door_actions(castle, anchors) + plain_object_actions(castle, skip) + specials
+def special_actions(castle):
+    return []

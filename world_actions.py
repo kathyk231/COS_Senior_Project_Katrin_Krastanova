@@ -88,6 +88,11 @@ def special_actions(castle):
         AS("take evidence", obj, {}, {"has_" +obj: True}, roles={R})
     AS("examine", "king_carpet", {}, {"searched_king_carpet": True}, roles={S})
     AS("scrub", "king_carpet", {"has_water":True}, {"removed_king_carpet":True, "has_water":False}, roles={R})
+    AS("move the painting", "painting", {}, {"found_passage": True, "passage_revealed": True})
+    AS("pour water", "horse_trough", {"has_water": True}, {"watered_horses":True, "has_water":False}, roles={S})
+    AS("fill rack", "feeding_rack", {"has_hay": True}, {"fed_horses": True, "has_hay":False}, roles={S})
+    AS("mix spiked wine", "kitchen_table", {"has_truth_serum": True, "has_wine_cup": True, "has_wine": True}, {"has_spiked_wine": True, "mixed_spiked_wine": True, "has_truth_serum": False, "has_wine_cup": False, "has_wine": False}, roles={S})
+    AS("brew serum", "cauldron", {"has_" + i: True for i in SERUM},{"has_truth_serum":True, "brewed_truth_serum": True, **{"has_" + i: False for i in SERUM}}, roles= {S})
 
     return out
 

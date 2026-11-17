@@ -1,3 +1,6 @@
+from ai_movement import Walker
+from goap import Goal, Agent
+from quests import QuestManager
 from world_actions import sense_state
 
 
@@ -86,5 +89,15 @@ class AIController:
             self.runner.cancel()
         self.walker.update(dt, navmesh)
     def status_text(self):
-        parts = [f"{q.title} ({q.current +1}/{len(q.steps)}): {q.current_text()}" for q in self.manager.available_actions()]
+        parts = [f"{q.title} ({q.current +1}/{len(q.steps)}): {q.current_text()}" for q in self.manager.active()]
         return f"{self.character.name}: " + (" | ".join(parts) if parts else "all quests are completed.")
+def make_ai(character, castle, anchors, grid, actions, quests):
+    walker = Walker(character, grid)
+    runner = WorldRunner(character, walker,grid, castle, anchors)
+    manager = QuestManager(quests)
+
+    def goals():
+        manager.update(character)
+        return [Goal.from_step(q.steps[q.current]) for q in manager.active()]
+    agent = Agent(character.name, actions, goals, role = character.state.role, cooldown = 300)
+    return AIController(character, castle, agent, runner, walker, manager)

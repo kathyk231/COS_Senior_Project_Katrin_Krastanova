@@ -15,8 +15,16 @@ from npcs import create_r_standin
 from confession import decision_cup, offer_cup
 from character import Character
 from ai_movement import NavGrid, Walker, MovementRunner
+from world_setup import create_world
+from world_actions import build_world_actions
+from ai_controller import make_ai
 
 WIDTH, HEIGHT, FPS = 960, 540, 60
+SPEEDS = [1,3,8]
+ROLE = Role.SERVANT
+AI_ROLE = Role.ROYAL
+def quests_for(role):
+    return create_servant_quests()if role == Role.SERVANT else create_royal_quests()
 
 def main():
     pygame.init()
@@ -25,80 +33,80 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
-    ROLE = Role.SERVANT
-    player = Player((1068, 1960), PlayerState(ROLE))
-    player.inventory.add_item("spiked_wine")
-    characters = [player]
-    castle = Castle()
-    if ROLE == Role.SERVANT:
-        castle.interactable.append(create_r_standin())
-    quests =QuestManager(create_servant_quests() if ROLE == Role.SERVANT else create_royal_quests())
-    quest_log = QuestLog(font)
-    quests.on_complete = lambda q: messages.say(f"Quest completed: {q.title}")
+    screen.fill((30, 35, 50))
+    loading = font.render("Building the castle...", True, (0,0,0))
+    screen.blit(loading, loading.get_rect(center=(WIDTH//2,HEIGHT//2)))
+    pygame.display.flip()
     messages = MessageLog(font)
-    navmesh = NavmeshManager()
-    solids = [o.rect for o in castle.interactable if o.solid]
-    solids += [p.rect for p in castle.props if p.solid]
-    navmesh.bake(castle.rooms, castle.doors, castle.passage,solids)
-    t0 = time.time()
-    grid = NavGrid(navmesh, castle.width, castle.height)
-    ai = Character("Royal", (1068,880), PlayerState(Role.ROYAL))
-    ai.color = (60,160,90)
-    characters.append(ai)
-    walker = Walker(ai,grid)
-    anchors = {r["name"]: grid.anchor(r["rect"].center) for r in castle.rooms}
-    runner = MovementRunner(walker, anchors)
-    EDGES = [("Throne Room", "Corridor"), ("Corridor", "Royal Room"), ("Corridor", "Queens Room"),("Throne Room", "Kings Room"), ("Throne Room", "Entrance Hall"), ("Entrance Hall", "Stable")]
-    want = {"room": None}
-    agent = Agent("Royal", make_moves(EDGES), lambda: [Goal("be in" + want["room"], {"room": want["room"]})] if want["room"] else [], Role.ROYAL, cooldown=300 )
-    R_KEYS = {pygame.K_1: "Royal Room", pygame.K_2: "Kings Room", pygame.K_3: "Entrance Hall", pygame.K_4: "Stable", pygame.K_5: "Queens Room"}
-    print(f"grid built in {time.time() - t0:.2f}s, {len(grid.free)} free cells")
+    quest_log = QuestLog(font)
+    castle, navmesh, grid, anchors = create_world(with_standin=Role.SERVANT in (ROLE, AI_ROLE))
+
+    player = Player((1068, 1960), PlayerState(ROLE))
+    ai = Character(f"{AI_ROLE.value.capitalize()} AI", (1068, 1960), PlayerState(AI_ROLE))
+    ai.color= (60,160,90)
+    characters = [player,ai]
+
+    quests =QuestManager(quests_for(ROLE))
+    quests.on_complete = lambda q: messages.say(f"Quest completed: {q.title}")
+    ai_ctrl = make_ai(ai,castle,grid,anchors, build_world_actions(castle,anchors), quests_for(AI_ROLE))
+    speed_i = 0
+    follow_ai = True
     show_grid = False
     running = True
+
+
     while running:
-        dt = clock.tick(FPS)/1000.0
+        dt = min(clock.tick(FPS)/1000.0, 0.05)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if castle.result:
                 continue
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_e:
+            if event.type != pygame.KEYDOWN:
+                continue
+            key = event.key
+            if key == pygame.K_ESCAPE:
+                running = False
+            elif castle.result:
+                continue
+            elif key == pygame.K_e:
                 text = castle.interact(player)
                 if text:
                     messages.say(text)
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_b:
+            elif key == pygame.K_b:
                 messages.say(castle.give(player))
-            elif event.type == pygame.KEYDOWN and castle.pending_cup and event.key in (pygame.K_y,pygame.K_n):
+            elif castle.pending_cup and key in (pygame.K_y, pygame.K_n):
                 p = castle.pending_cup
-                messages.say(decision_cup(p["giver"],p["royal"], castle, event.key == pygame.K_y))
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_F1:
+                messages.say(decision_cup(p["giver"], p["royal"], castle, key == pygame.K_y))
+            elif key == pygame.K_F1:
                 for o in castle.interactable:
                     if o.id == "royal_npc":
-                        o.data["character"].set_flag("announced_king_death")
-                        messages.say("DEBUG: The royal has announced the Death.")
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_F2 and ROLE == Role.ROYAL:
-                fake = Character("Servant", (0,0),PlayerState(Role.SERVANT))
+                        o.data["character"].set_flag("announce_king_death")
+                        messages.say("DEBUG: announced the death")
+            elif key == pygame.K_F2 and Role.ROYAL:
+                fake = Character("Servant", (0,0), PlayerState(Role.SERVANT))
                 fake.inventory.add_item("spiked_wine")
                 messages.say(offer_cup(fake, player, castle))
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_F3:
+            elif key == pygame.K_F3:
                 show_grid = not show_grid
-            elif event.type == pygame.KEYDOWN and event.key in R_KEYS:
-                want["room"] = R_KEYS[event.key]
+            elif key == pygame.K_F4:
+                follow_ai = not follow_ai
+            elif key == pygame.K_F5:
+                speed_i = (speed_i + 1) % len(SPEEDS)
 
-        if not castle.result:
-            player.update(dt,navmesh)
-            if agent.step(ai.facts(), runner) is None:
-                runner.cancel()
-            walker.update(dt,navmesh)
-        text = castle.update(dt)
-        if text:
-            messages.say(text)
+        for _ in range(SPEEDS[speed_i]):
+            if not castle.result:
+                player.update(dt, navmesh)
+                ai_ctrl.update(dt, navmesh)
+            text = castle.update(dt)
+            if text:
+                messages.say(text)
+            navmesh.update_doors(dt, [(c.position, c.radius) for c in characters])
+            for c in characters:
+                c.update_room(castle)
         messages.update(dt)
-        navmesh.update_doors(dt,[(c.position,c.radius) for c in characters])
-        for c in characters:
-            c.update_room(castle)
         quests.update(player)
-        camera = pygame.Vector2(player.position.x - WIDTH/2, player.position.y - HEIGHT/2)
+        focus = ai.position if follow_ai else player.position
+        camera = pygame.Vector2(focus.x - WIDTH/2, focus.y - HEIGHT/2)
         screen.fill((30,35,50))
         castle.draw_rooms(screen, camera)
         navmesh.draw(screen, camera)
@@ -107,9 +115,24 @@ def main():
         castle.draw_doors(screen, camera)
         for c in characters:
             c.draw(screen, camera)
-        hud = f"{player.state.role.value.upper()} | Room: {player.room} |Position: {int(player.position.x)}/{int(player.position.y)} | Items: {','.join(player.inventory.names()) or '-'}"
+        if show_grid:
+            c = grid.cell
+            for cx in range(int(camera.x // c), int(camera.x + WIDTH) + 1):
+                for cy in range(int(camera.y // c), int(camera.y + HEIGHT) + 1):
+                    px, py = grid.center(cx, cy)
+                    pos = (int(px-camera.x),int(py-camera.y))
+                    if (cx,cy)in grid.free:
+                        pygame.draw.circle(screen,(0,160,0),pos,2)
+                    elif (cx,cy) in grid.gates:
+                        pygame.draw.circle(screen, (255,140,0),pos,3)
+            if ai_ctrl.walker.points:
+                pts = [ai.position] + ai_ctrl.walker.points
+                pygame.draw.lines(screen, (0, 0, 0), False, [(p.x - camera.x, p.y - camera.y) for p in pts], 3)
+
+        hud = (f"{player.state.role.value.upper()} | Room: {player.room} |Position: {int(player.position.x)}/{int(player.position.y)} | Items: {','.join(player.inventory.names()) or '-'}" + (f"| Speed x{SPEEDS[speed_i]}" if SPEEDS[speed_i] > 1 else ""))
         screen.blit(font.render(hud,True,(0,0,0)),(10,10))
         quest_log.draw(screen,quests, player)
+        screen.blit(font.render(ai_ctrl.status_text(),True,(0,0,0)),(10,90))
         if castle.coronation:
             t = font.render(f"Coronation: {castle.coronation['left']:.0f}s",True,(0,0,0))
             screen.blit(t,(WIDTH//2 - t.get_width()//2,40))
@@ -118,6 +141,11 @@ def main():
             message = font.render(f"Click E:{obj.verb} {obj.name} "+("   B: Give" if obj.on_give else ""), True, (0,0,0))
             screen.blit(message,(WIDTH//2 - message.get_width()//2,HEIGHT-120))
         messages.draw(screen)
+        if castle.pending_cup:
+            t = font.render("A servant offers you a cup of wine!  Y: Drink   N: Refuse", True, (255,255,120))
+            r = t.get_rect(center=(WIDTH//2,HEIGHT//2-120))
+            pygame.draw.rect(screen,(0,0,0),r.inflate(24,12))
+            screen.blit(t,r)
         if castle.result:
             shade = pygame.Surface((WIDTH,HEIGHT), pygame.SRCALPHA)
             shade.fill((0,0,0,170))
@@ -129,24 +157,6 @@ def main():
                 line = font.render(text_line, True, (255,255,255))
                 screen.blit(line,line.get_rect(center=(WIDTH//2,y)))
                 y += line.get_height() + 4
-        if castle.pending_cup:
-            t = font.render("A servant offers you a cup of wine!  Y: Drink   N: Refuse", True, (255,255,120))
-            r = t.get_rect(center=(WIDTH//2,HEIGHT//2-120))
-            pygame.draw.rect(screen,(0,0,0),r.inflate(24,12))
-            screen.blit(t,r)
-        if show_grid:
-            c = grid.cell
-            for cx in range(int(camera.x // c), int(camera.x + WIDTH) + 1):
-                for cy in range(int(camera.y // c), int(camera.y + HEIGHT) + 1):
-                    if (cx,cy)in grid.free:
-                        px,py = grid.center(cx,cy)
-                        pygame.draw.circle(screen,(0,160,0),(int(px-camera.x),int(py-camera.y)),2)
-                    elif (cx,cy) in grid.gates:
-                        px,py = grid.center(cx,cy)
-                        pygame.draw.circle(screen, (255,140,0),(int(px-camera.x),int(py-camera.y)),3)
-        if walker.points:
-            pts = [ai.position] + walker.points
-            pygame.draw.lines(screen,(0,0,0),False,[(p.x - camera.x, p.y - camera.y) for p in pts],3)
         pygame.display.flip()
     pygame.quit()
 

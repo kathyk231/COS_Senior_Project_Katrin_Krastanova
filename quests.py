@@ -5,7 +5,6 @@ class QuestManager:
     @property
     def finished(self):
         return all(q.complete for q in self.quests)
-
     def active(self):
         done = {q.id for q in self.quests if q.complete}
         return [q for q in self.quests if not q.complete and all(a in done for a in q.after)]

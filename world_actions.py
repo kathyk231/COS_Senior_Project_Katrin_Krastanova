@@ -3,12 +3,12 @@ from goap import Action
 from player_state import Role
 
 ROLES = list(Role)
-SERUM = ["potion_bottle", "truth_berry", "light_essence", "tooth_leaf", "phoenix feather"]
+SERUM = ["potion_bottle", "truth_berry", "light_essence", "tooth_leaf", "phoenix_feather"]
 EVIDENCE = ["overturned_cup", "empty_bottle", "suspicious_robe", "letters"]
 
 def world_facts(castle):
     facts = {}
-    if any(d.name.startswith("Hidden Passage") and not d.hidden for d in castle.doors):
+    if any(d.name.startswith("Hidden passage") and not d.hidden for d in castle.doors):
         facts["passage_revealed"] = True
     return facts
 def sense_state(character, castle):
@@ -40,7 +40,7 @@ def door_actions(castle, anchors):
     actions = []
     for door, a, b in door_edges(castle):
         for src, dst in ((a, b), (b, a)):
-            if src not in anchors and dst not in anchors:
+            if src not in anchors or dst not in anchors:
                 continue
             dist = anchors[src].distance_to(anchors[dst])
             cost = round(1+dist / 300, 1)
@@ -85,7 +85,7 @@ def special_actions(castle):
         out.append(Action(f"{label} [{obj}]", {"room":where[obj],**pre}, eff, cost, roles=roles, data=data))
     for obj, item in (("royal_nightstand", "empty_bottle"), ("queen_desk", "letters"), ("king_nightstand", "overturned_cup"), ("king_vanity", "suspicious_robe")):
         AS("examine", obj, {},{"searched_" + obj: True}, roles={S}),
-        AS("take evidence", obj, {}, {"has_" +obj: True}, roles={R})
+        AS("take evidence", obj, {}, {"has_" +item: True}, roles={R})
     AS("examine", "king_carpet", {}, {"searched_king_carpet": True}, roles={S})
     AS("scrub", "king_carpet", {"has_water":True}, {"removed_king_carpet":True, "has_water":False}, roles={R})
     AS("move the painting", "painting", {}, {"found_passage": True, "passage_revealed": True})
@@ -93,6 +93,19 @@ def special_actions(castle):
     AS("fill rack", "feeding_rack", {"has_hay": True}, {"fed_horses": True, "has_hay":False}, roles={S})
     AS("mix spiked wine", "kitchen_table", {"has_truth_serum": True, "has_wine_cup": True, "has_wine": True}, {"has_spiked_wine": True, "mixed_spiked_wine": True, "has_truth_serum": False, "has_wine_cup": False, "has_wine": False}, roles={S})
     AS("brew serum", "cauldron", {"has_" + i: True for i in SERUM},{"has_truth_serum":True, "brewed_truth_serum": True, **{"has_" + i: False for i in SERUM}}, roles= {S})
-
+    AS("give wine", "king_guard", {"has_wine": True}, {"guard_drunk": True, "has_wine": False}, roles= {S}, kind= "give", item="wine", cost=4)
+    AS("talk to the farmer", "stable_guy", {}, {"talked_stable_guy": True})
+    AS("hear farmer story", "stable_guy", {"watered_horses": True, "fed_horses": True}, {"knows_secret_bag": True}, roles={S})
+    AS("offer spiked wine", "royal_npc", {"has_spiked_wine": True}, {"royal_confessed": True, "has_spiked_wine": False}, roles= {S}, kind= "give", item="spiked_wine", cost=2)
+    for item in ("jewelry", "queens_ring"):
+        AS(f"bribe with {item}", "king_guard", {"has_" + item: True}, {"bribed_guard": True, "has_" + item:False}, kind="give", item=item)
+    for item in ("queens_ring", "jewelry"):
+        AS(f"bribe with {item}", "stable_guy", {"has_" +item: True}, {"bribed_stable_guy":True,"has_"+item:False},roles={R}, kind="give", item=item)
+    AS("bury evidence", "burial_spot", {"has_spade": True,**{"has_"+i: True for i in EVIDENCE}},{**{"buried_"+i:True for i in EVIDENCE}, **{"has_" +i: False for i in EVIDENCE}}, roles={R})
+    for obj in ("podium_speech", "podium_speech_2"):
+        AS("announce death", obj, {"has_kings_ring": True, **{**{"buried_"+i:True for i in EVIDENCE}}}, {"announce_king_death": True}, roles={R})
+    AS("sit on throne", "throne_seat",{"announce_king_death": True}, {"crowned": True}, roles={R}, wait= 14)
+    AS("order guard", "king_guard", {}, {"bribed_guard": True}, roles={R}, kind= "give", item="order", cost=4)
+    AS("order farmer", "stable_guy", {}, {"bribed_stable_guy": True}, roles={R}, kind= "give", item="order", cost=4)
     return out
 

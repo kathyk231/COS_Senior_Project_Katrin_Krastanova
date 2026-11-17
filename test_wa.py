@@ -19,12 +19,13 @@ for role, make in ((Role.SERVANT, create_servant_quests),(Role.ROYAL, create_roy
     state = sense_state(ch, castle)
     state["room"] = "Entrance Hall"
     total, failed = 0, False
-    print(f"\n==={role.value}===")
+    print(f"\n==={role.value.upper()}===")
     for quest in make():
         for step in quest.steps:
             if any(all(state.get(k) == v for k,v in o.items()) for o in step.options):
                 continue
             found = plan_any(state, step.options, actions, role=role)
+            print(found)
             if found is None:
                 print(f"NO PLAN: {quest.id} / {step.text}")
                 failed = True

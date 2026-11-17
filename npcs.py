@@ -26,7 +26,7 @@ def talk_stable_guy(character, npc, world=None):
     character.set_flag("knows_secret_bag")
     character.set_flag("sent_to_witch")
     return "Farmer: A guard hauled a huge bag through the tunnel you came from. It bore the Royal crest. Follow the mushroom trail to the witch for a Truth Serum."
-def give_guard(character, guard, world=None):
+def give_guard(character, guard, world=None, item =None):
     role = character.state.role
     if character.has_flag("bribed_guard"):
         return "Guard: Coming to pay again?"
@@ -37,33 +37,35 @@ def give_guard(character, guard, world=None):
         return "The guard takes the wine and dozes off. You can sneak past him now."
     if role == Role.SERVANT and guard.data.get("paid_by") == "royal":
         return "Guard: I serve only the Royal. I won't accept anything from you."
-    for item in GUARD_BRIBES:
-        if character.inventory.remove_item(item):
+    for it in([item] if item else GUARD_BRIBES):
+        if it in GUARD_BRIBES and character.inventory.remove_item(it):
             character.set_flag("bribed_guard")
             guard.data.setdefault("paid_by", role.value)
-            name = item.replace("_", " ")
+            name = it.replace("_", " ")
             if role == Role.ROYAL:
                 return f"The guard takes the {name}. He will keep quiet"
             return f"The guard takes the {name} and looks away. You may pass."
-    if role == Role.ROYAL:
+    if role == Role.ROYAL and item in (None, "order"):
         character.set_flag("bribed_guard")
         guard.data.setdefault("paid_by", "royal")
         return "You order the guard to keep quiet, but he expected payment."
     return "You have nothing to offer the guard."
-def give_stable_guy(character, npc, world=None):
+def give_stable_guy(character, npc, world=None, item=None):
     if character.state.role != Role.ROYAL:
         return "Farmer: Keep your coin, help me with my chores and I will help you."
     if character.has_flag("bribed_stable_guy"):
         return "Farmer: My Highness, my lips are sealed."
-    for item in FARMER_BRIBES:
-        if character.inventory.remove_item(item):
+    for it in([item] if item else FARMER_BRIBES):
+        if it in FARMER_BRIBES and character.inventory.remove_item(it):
             character.set_flag("bribed_stable_guy")
             npc.data["silenced"] = True
             name = item.replace("_", " ")
             return f"The farmer pockets the {name}. He will keep quiet."
-    character.set_flag("bribed_stable_guy")
-    npc.data["silenced"] = True
-    return "You order the farmer to stay quiet. He agrees trembling."
+    if item in (None, "order"):
+        character.set_flag("bribed_stable_guy")
+        npc.data["silenced"] = True
+        return "You order the farmer to stay quiet. He agrees trembling."
+    return "You have nothing to offer the farmer."
 
 def talk_royal(character, npc, world=None):
     royal = npc.data["character"]
@@ -73,7 +75,7 @@ def talk_royal(character, npc, world=None):
         return "ROYAL: The King is dead. Long live the crown."
     return "ROYAL: The king is missing. A tragedy has struck. What do you want Servant??"
 
-def give_royal(character, npc, world=None):
+def give_royal(character, npc, world=None, item=None):
     return offer_cup(character, npc.data["character"], world)
 
 def create_r_standin():

@@ -1,28 +1,21 @@
 import pygame
 import textwrap
-import time
-
-from goap import Agent, make_moves, Goal
 from player import Player
 from player_state import PlayerState, Role
-from castle import Castle
-from Navmesh_manager import NavmeshManager
 from ui import MessageLog,QuestLog
 from quests import QuestManager
 from servant_quests import create_servant_quests
 from royal_quests import create_royal_quests
-from npcs import create_r_standin
 from confession import decision_cup, offer_cup
 from character import Character
-from ai_movement import NavGrid, Walker, MovementRunner
 from world_setup import create_world
 from world_actions import build_world_actions
 from ai_controller import make_ai
 
 WIDTH, HEIGHT, FPS = 960, 540, 60
 SPEEDS = [1,3,8]
-ROLE = Role.SERVANT
-AI_ROLE = Role.ROYAL
+ROLE = Role.ROYAL
+AI_ROLE = Role.SERVANT
 def quests_for(role):
     return create_servant_quests()if role == Role.SERVANT else create_royal_quests()
 
@@ -48,7 +41,7 @@ def main():
 
     quests =QuestManager(quests_for(ROLE))
     quests.on_complete = lambda q: messages.say(f"Quest completed: {q.title}")
-    ai_ctrl = make_ai(ai,castle,grid,anchors, build_world_actions(castle,anchors), quests_for(AI_ROLE))
+    ai_ctrl = make_ai(ai,castle,anchors,grid, build_world_actions(castle,anchors), quests_for(AI_ROLE))
     speed_i = 0
     follow_ai = True
     show_grid = False
@@ -132,7 +125,7 @@ def main():
         hud = (f"{player.state.role.value.upper()} | Room: {player.room} |Position: {int(player.position.x)}/{int(player.position.y)} | Items: {','.join(player.inventory.names()) or '-'}" + (f"| Speed x{SPEEDS[speed_i]}" if SPEEDS[speed_i] > 1 else ""))
         screen.blit(font.render(hud,True,(0,0,0)),(10,10))
         quest_log.draw(screen,quests, player)
-        screen.blit(font.render(ai_ctrl.status_text(),True,(0,0,0)),(10,90))
+        screen.blit(font.render(ai_ctrl.status_text(),True,(0,0,0)),(10,100))
         if castle.coronation:
             t = font.render(f"Coronation: {castle.coronation['left']:.0f}s",True,(0,0,0))
             screen.blit(t,(WIDTH//2 - t.get_width()//2,40))

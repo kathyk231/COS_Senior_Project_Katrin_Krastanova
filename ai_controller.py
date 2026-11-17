@@ -35,7 +35,7 @@ class WorldRunner:
     def _object(self, action):
         return next((o for o in self.castle.interactable if o.id == action.data["object"]), None)
     def __call__(self, action):
-        kind = action.data.get["kind", "use"]
+        kind = action.data.get("kind", "use")
         if self.current is not action:
             self.current = action
             self.phase = "walk"
@@ -47,7 +47,7 @@ class WorldRunner:
                 target = self.grid.stand_point(obj) if obj else None
             if target is None:
                 return self._fail()
-            self.walker.goto(target)
+            self.walker.go_to(target)
         if self.phase == "walk":
             status = self.walker.status
             if status == "failed":
@@ -62,7 +62,7 @@ class WorldRunner:
         if self.phase =="do":
             obj = self._object(action)
             if kind =="give":
-                msg = obj.on_give(self.character, obj, self.castle, item=action.dta.get("item"))
+                msg = obj.on_give(self.character, obj, self.castle, item=action.data.get("item"))
             else:
                 msg = obj.search(self.character, self.castle)
             print(f"[{self.character.name}] {msg}")

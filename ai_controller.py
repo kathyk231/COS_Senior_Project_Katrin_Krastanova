@@ -4,12 +4,13 @@ from quests import QuestManager
 from world_actions import sense_state
 
 
-def effects_met(state, effects):
-    for k, v in effects.items():
+def effects_met(state, conditions):
+    for k, v in conditions.items():
+        have = state.get(k)
         if isinstance(v, bool):
-            if bool(state.get(k)) != v:
+            if bool(have) != v:
                 return False
-        elif state .get(k) != v:
+        elif have != v:
             return False
     return True
 class WorldRunner:

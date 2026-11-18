@@ -31,7 +31,7 @@ class Agent:
         self.plan = []
         self.log = []
         self.running = None
-        self.wait = 0
+        self.goal_cooldowns ={}
         self.printed = set()
     def say(self, text):
         entry = f"[{self.name}] {text}"
@@ -44,7 +44,8 @@ class Agent:
 
     def pick_goal(self, state):
         goals = self.goals() if callable(self.goals) else self.goals
-        avail_goals = [g for g in goals if not g.is_satisfied(state) and g.value(state)]
+        avail_goals = [g for g in goals if
+                       not g.is_satisfied(state) and g.value(state) > 0 >= self.goal_cooldowns.get(g.name, 0)]
         if not avail_goals:
             return None
         return max(avail_goals, key=lambda g: g.value(state))
@@ -56,8 +57,8 @@ class Agent:
         if found:
             self.say(f"goal '{goal.name}': " + " > ".join(a.name for a in self.plan))
         else:
-            self.wait =60
             self.say(f"goal '{goal.name}': no plan found.")
+            self.goal_cooldowns[goal.name] = self.cooldown_steps
     def step(self, state, execute):
         for name in list(self.cooldowns):
             self.cooldowns[name] -= 1
@@ -73,12 +74,7 @@ class Agent:
             self.running, self.goal, self.plan = None, None, []
             return action
         if self.goal is None or goal.name != self.goal.name:
-            self.wait = 0
             self.running = None
-            self.printed.clear()
-        if self.wait >0:
-            self.wait -= 1
-            return None
         if self.running is None:
             if self.goal is None or goal.name != self.goal.name or not self.plan or not self.plan[0].applicable(state):
                 self.replan(state, goal)

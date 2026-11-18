@@ -1,6 +1,7 @@
 import pygame
 from goap import Action
 from player_state import Role
+from sabotage import slug, opponent_facts
 
 ROLES = list(Role)
 SERUM = ["potion_bottle", "truth_berry", "light_essence", "tooth_leaf", "phoenix_feather"]
@@ -8,13 +9,22 @@ EVIDENCE = ["overturned_cup", "empty_bottle", "suspicious_robe", "letters"]
 
 def world_facts(castle):
     facts = {}
-    if any(d.name.startswith("Hidden passage") and not d.hidden for d in castle.doors):
-        facts["passage_revealed"] = True
+    for d in castle.doors:
+        if d.name.startswith("Hidden passage") and not d.hidden:
+            facts["passage_revealed"] = True
+        if d.loched:
+            facts["door_locked_" + slug(d.name)] = True
+    barrel = next((o for o in castle.interactable if o.id == "wine_barrel"), None)
+    if barrel is not None and barrel.data.get("blocked_until", 0) > castle.time:
+        facts["wine_spoiled"] = True
     return facts
-def sense_state(character, castle):
+
+def sense_state(character, castle, others=()):
     state = character.facts()
     state.update(world_facts(castle))
+    state.update(opponent_facts(character, others))
     return state
+
 def door_options(door, role):
     if role in door.allowed_role:
         return [("role", {})]
@@ -85,7 +95,7 @@ def special_actions(castle):
         out.append(Action(f"{label} [{obj}]", {"room":where[obj],**pre}, eff, cost, roles=roles, data=data))
     for obj, item in (("royal_nightstand", "empty_bottle"), ("queen_desk", "letters"), ("king_nightstand", "overturned_cup"), ("king_vanity", "suspicious_robe")):
         AS("examine", obj, {},{"searched_" + obj: True}, roles={S}),
-        AS("take evidence", obj, {}, {"has_" +item: True}, roles={R})
+        AS("take evidence", obj, {}, {"has_" +item: True, "removed_" + obj: True}, roles={R})
     AS("examine", "king_carpet", {}, {"searched_king_carpet": True}, roles={S})
     AS("scrub", "king_carpet", {"has_water":True}, {"removed_king_carpet":True, "has_water":False}, roles={R})
     AS("move the painting", "painting", {}, {"found_passage": True, "passage_revealed": True})

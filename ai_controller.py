@@ -32,49 +32,82 @@ class WorldRunner:
     def _fail(self):
         self.cancel()
         return False
-
+    # ----------------- LOOKUPS --------------------
     def _find_object(self, action):
         oid =action.data.get("object")
         if not oid:
             return None
         return next((o for o in self.castle.interactable if o.id == oid ), None)
+    def _door(self, action):
+        return next((d for d in self.castle.doors if d.name == action.data.get("door")), None)
+    def _opponent(self):
+        for c in self.others:
+            if c is not self.character and c.state.role != self.character.state.role and sees(self.character, c):
+                return c
+        return None
+    def _chase_target(self,action):
+        if action.data.get("kind") == "confront":
+            return self._opponent()
+        obj = self._find_object(action)
+        return obj.data.get("follows") if obj is not None else None
+    #---------------- WALKING ------------------
+    def _start_walk(self, action, kind):
+        if self._chase_target(action):
+            return True
+        if kind == "move":
+            target = self.anchors.get(action.data["goto_room"])
+        elif kind == "lock":
+            door = self._door(action)
+            target = self.grid.anchor(door.position) if door else None
+        else:
+            obj = self._find_object(action)
+            target = self.grid.stand_point(obj) if obj else None
+        if target is None:
+            return False
+        self.walker.go_to(target)
+        return True
+    def walk(self, action, kind):
+        chase = self._chase_target(action)
+        if chase is not None:
+            if self.character.position.distance_to(chase.position) < CHASE_REACH:
+                self.walker.stop()
+                self.phase = "do"
+                return None
+            if self.timer > CHASE_TIMEOUT:
+                return self._fail()
+        if kind == "confront":
+            return self._fail()
+        status = self.walker.status
+        if status == "failed":
+            return self._fail()
+        if status != "arrived":
+            return "running"
+        self.walker.stop()
+        if kind == "move":
+            self.current = None
+            return True
+        self.phase = "do"
+        return None
+
+
 
     def __call__(self, action):
         kind = action.data.get("kind", "use")
         if self.current is not action:
             self.current, self.phase, self.timer, self.last_path = action, "walk", 0.0, -1.0
-
-            if kind =="move":
-                target = self.anchors.get(action.data["goto_room"])
-            else:
-                obj = self._object(action)
-                target = self.grid.stand_point(obj) if obj else None
-            if target is None:
+            if not self._start_walk(action, kind):
                 return self._fail()
-            self.walker.go_to(target)
-        if self.phase == "walk":
-            status = self.walker.status
-            if status == "failed":
-                return self._fail()
-            if status != "arrived":
-                return "running"
-            self.walker.stop()
-            if kind == "move":
+            if self.phase =="walk":
+                result = self.walk(action, kind)
+                if result is not None:
+                    return result
+            if self.phase == "do":
+                self.phase == "wait"
+                self.timer = 0.0
+            state = sense_state(self.character,self.castle,self.others)
+            if satisfied(state, action.effects):
                 self.current = None
                 return True
-            self.phase = "do"
-        if self.phase =="do":
-            obj = self._object(action)
-            if kind =="give":
-                msg = obj.on_give(self.character, obj, self.castle, item=action.data.get("item"))
-            else:
-                msg = obj.search(self.character, self.castle)
-            print(f"[{self.character.name}] {msg}")
-            self.phase = "wait"
-            self.timer = 0.0
-        if effects_met(self.character.facts(), action.effects):
-            self.current = None
-            return True
         if self.timer < action.data.get("wait", 0):
             return "running"
         return self._fail()

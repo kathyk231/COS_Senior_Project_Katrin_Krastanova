@@ -1,28 +1,27 @@
 from ai_movement import Walker
-from goap import Goal, Agent
+from goap import Goal, Agent, satisfied
 from quests import QuestManager
 from world_actions import sense_state
+import pygame
+import sabotage
+from sabotage import MEMORY_TIME, sees
+from role_sabotage import ROLE_GOALS
 
+CHASE_REACH = 45
+CHASE_TIMEOUT = 25.0
 
-def effects_met(state, conditions):
-    for k, v in conditions.items():
-        have = state.get(k)
-        if isinstance(v, bool):
-            if bool(have) != v:
-                return False
-        elif have != v:
-            return False
-    return True
 class WorldRunner:
-    def __init__(self, character, walker,grid, castle, anchors):
+    def __init__(self, character, walker,grid, castle, anchors, others):
         self.character = character
         self.walker = walker
         self.grid = grid
         self.castle = castle
         self.anchors = anchors
+        self.others = others
         self.current = None
         self.phase = None
         self.timer = 0.0
+        self.last_path = 0.0
 
     def tick(self, dt):
         self.timer += dt
@@ -33,14 +32,18 @@ class WorldRunner:
     def _fail(self):
         self.cancel()
         return False
-    def _object(self, action):
-        return next((o for o in self.castle.interactable if o.id == action.data["object"]), None)
+
+    def _find_object(self, action):
+        oid =action.data.get("object")
+        if not oid:
+            return None
+        return next((o for o in self.castle.interactable if o.id == oid ), None)
+
     def __call__(self, action):
         kind = action.data.get("kind", "use")
         if self.current is not action:
-            self.current = action
-            self.phase = "walk"
-            self.timer = 0.0
+            self.current, self.phase, self.timer, self.last_path = action, "walk", 0.0, -1.0
+
             if kind =="move":
                 target = self.anchors.get(action.data["goto_room"])
             else:

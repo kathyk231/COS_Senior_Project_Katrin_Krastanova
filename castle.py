@@ -21,6 +21,9 @@ class Castle:
         self.passage =[pygame.Rect(1712, 992, 96, 464)]
         self.create_castle()
         self.create_doors()
+        self.time = 0.0
+        self.notices = []
+        self.characters = []
 
     def create_castle(self):
         self.rooms =[
@@ -129,7 +132,15 @@ class Castle:
     def draw_prop(self,screen,camera):
         for prop in self.props:
             prop.draw(screen, camera)
+    def notify(self, character, text):
+        if getattr(character, "is_player",False):
+            self.notices.append(text)
     def update(self,dt):
+        self.time += dt
+        for o in self.interactable:
+            follow = o.data.get("follows")
+            if follow is not None:
+                o.rect.center = (int(follow.position.x), int(follow.position.y))
         c = self.coronation
         if c is None:
             return None

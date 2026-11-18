@@ -2,11 +2,19 @@ from castle import Castle
 from Navmesh_manager import NavmeshManager
 from ai_movement import NavGrid
 from npcs import create_r_standin
+import pygame
 
-def create_world(with_standin = False):
+def create_world(royal =None):
     castle = Castle()
-    if with_standin:
-        castle.interactable.append(create_r_standin())
+    if royal is not None:
+        npc = create_r_standin()
+        npc.data["character"] = royal
+        npc.data["follows"] = royal
+        npc.solid = False
+        npc.rect.size = (24,24)
+        npc.rect.center = (int(royal.position.x), int(royal.position.y))
+        npc.sprite = pygame.Surface((1,1), pygame.SRCALPHA)
+        castle.interactable.append(npc)
     navmesh = NavmeshManager()
     solids = [o.rect for o in castle.interactable if o.solid]
     solids += [p.rect for p in castle.props if p.solid]

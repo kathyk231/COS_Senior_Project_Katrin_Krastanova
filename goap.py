@@ -2,7 +2,14 @@ import heapq
 import itertools
 
 def satisfied(state,conditions):
-    return all(state.get(k) == v for k, v in conditions.items())
+    for k, v in conditions.items():
+        have = state.get(k)
+        if isinstance(v, bool):
+            if bool(have) != v:
+                return False
+        elif have != v:
+            return False
+    return True
 def state_key(state):
     return frozenset(state.items())
 class Goal:

@@ -9,6 +9,7 @@ from role_sabotage import ROLE_GOALS
 
 CHASE_REACH = 45
 CHASE_TIMEOUT = 25.0
+SABOTAGE = {"spoil": lambda ch, obj, castle: sabotage.spoil_wine(ch, obj, castle)}
 
 class WorldRunner:
     def __init__(self, character, walker,grid, castle, anchors, others):
@@ -17,6 +18,7 @@ class WorldRunner:
         self.grid = grid
         self.castle = castle
         self.anchors = anchors
+        self.forget = lambda key: None
         self.others = others
         self.current = None
         self.phase = None
@@ -110,7 +112,7 @@ class WorldRunner:
             msg = SABOTAGE[data["what"]](self.character, self._find_object(action), self.castle)
         elif kind == "give":
             obj = self._find_object(action)
-            msg = obj.give(self.character, obj, self.castle, item = data.get("item"))
+            msg = obj.gives(self.character, obj, self.castle, item = data.get("item"))
         else:
             obj = self._find_object(action)
             msg = obj.search(self.character, self.castle)
@@ -121,18 +123,18 @@ class WorldRunner:
             self.current, self.phase, self.timer, self.last_path = action, "walk", 0.0, -1.0
             if not self._start_walk(action, kind):
                 return self._fail()
-            if self.phase =="walk":
-                result = self.walk(action, kind)
-                if result is not None:
-                    return result
-            if self.phase == "do":
-                self._perform(action, kind)
-                self.phase = "wait"
-                self.timer = 0.0
-            state = sense_state(self.character,self.castle,self.others)
-            if satisfied(state, action.effects):
-                self.current = None
-                return True
+        if self.phase =="walk":
+            result = self.walk(action, kind)
+            if result is not None:
+                return result
+        if self.phase == "do":
+            self._perform(action, kind)
+            self.phase = "wait"
+            self.timer = 0.0
+        state = sense_state(self.character,self.castle,self.others)
+        if satisfied(state, action.effects):
+            self.current = None
+            return True
         if self.timer < action.data.get("wait", 0):
             return "running"
         return self._fail()
@@ -158,7 +160,7 @@ class AIController:
                 del self.memory[k]
         for k in seen:
             self.memory[k] = MEMORY_TIME
-        state = {k: v for k, v in raw.items() if k.startswith("opp_")}
+        state = {k: v for k, v in raw.items() if not k.startswith("opp_")}
         state.update({k: True for k in self.memory})
         if seen:
             self.alert = min(10.0, self.alert + dt *0.5)

@@ -12,7 +12,7 @@ def world_facts(castle):
     for d in castle.doors:
         if d.name.startswith("Hidden passage") and not d.hidden:
             facts["passage_revealed"] = True
-        if d.loched:
+        if d.locked:
             facts["door_locked_" + slug(d.name)] = True
     barrel = next((o for o in castle.interactable if o.id == "wine_barrel"), None)
     if barrel is not None and barrel.data.get("blocked_until", 0) > castle.time:

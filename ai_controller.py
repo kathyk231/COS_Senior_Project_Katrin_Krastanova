@@ -112,7 +112,7 @@ class WorldRunner:
             msg = SABOTAGE[data["what"]](self.character, self._find_object(action), self.castle)
         elif kind == "give":
             obj = self._find_object(action)
-            msg = obj.gives(self.character, obj, self.castle, item = data.get("item"))
+            msg = obj.on_give(self.character, obj, self.castle, item = data.get("item"))
         else:
             obj = self._find_object(action)
             msg = obj.search(self.character, self.castle)

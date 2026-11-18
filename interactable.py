@@ -26,6 +26,8 @@ class Interactable:
         cy = max(self.rect.top, min(position.y, self.rect.bottom))
         return pygame.Vector2(cx,cy).distance_to(position)
     def search(self,character,world=None):
+        if world is not None and self.data.get("blocked_until", 0) > world.time:
+            return self.data.get("blocked_text", "You can't do that right now.")
         if self.use:
             return self.use(character,self,world)
         flag = "searched_" + self.id
@@ -46,6 +48,11 @@ class Interactable:
             return self.found_text
         character.set_flag(flag)
         return self.found_text
+    def reset_for(self, character):
+        if hasattr(self, "taken_count"):
+            self.taken_count.pop(character.name, None)
+        if hasattr(self, "taken_by"):
+            self.taken_by.discard(character.name)
     def draw(self, surface, camera):
         r = self.rect.move(-int(camera.x), -int(camera.y))
         if self.sprite:

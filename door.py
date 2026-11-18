@@ -10,6 +10,8 @@ class Door:
         self.key = key
         self.hidden = hidden
         self.pass_flags = pass_flags or []
+        self.locked_by = None
+        self.lock_until =0.0
         if allowed_role is None:
             self.allowed_role=[]
         else:
@@ -21,7 +23,7 @@ class Door:
             return True
         return any(character.has_flag(f) for f in self.pass_flags)
     def open_door(self, character):
-        if self.locked:
+        if self.locked and self.locked_by != character.name:
             return False
         if self.can_open(character):
             self.is_open = True

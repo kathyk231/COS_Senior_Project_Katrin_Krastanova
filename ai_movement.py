@@ -84,7 +84,7 @@ class MovementRunner:
         self.current = None
         self.walker.stop()
 def door_ok(door, character):
-    if door.hidden or door.locked:
+    if door.hidden or (door.locked and door.locked_by != character.name):
         return False
     return door.is_open or door.can_open(character)
 

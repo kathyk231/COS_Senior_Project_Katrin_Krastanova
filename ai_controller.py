@@ -52,7 +52,7 @@ class WorldRunner:
         return obj.data.get("follows") if obj is not None else None
     #---------------- WALKING ------------------
     def _start_walk(self, action, kind):
-        if self._chase_target(action):
+        if self._chase_target(action) is not None:
             return True
         if kind == "move":
             target = self.anchors.get(action.data["goto_room"])
@@ -75,6 +75,12 @@ class WorldRunner:
                 return None
             if self.timer > CHASE_TIMEOUT:
                 return self._fail()
+            if self.timer - self.last_path >= 0.5:
+                self.last_path = self.timer
+                self.walker.go_to(chase.position)
+            if self.walker.status == "failed":
+                return self._fail()
+            return "running"
         if kind == "confront":
             return self._fail()
         status = self.walker.status
@@ -88,9 +94,27 @@ class WorldRunner:
             return True
         self.phase = "do"
         return None
-
-
-
+    # ------------- PERFORM AN ACTION -----------
+    def _perform(self, action, kind):
+        data = action.data
+        if kind == "confront":
+            target = self._chase_target(action)
+            if target is None:
+                msg = "Noone there."
+            else:
+                msg = sabotage.confront(self.character, target, data["mode"], data["item"], self.castle)
+                self.forget("opp_has_" + data["item"])
+        elif kind == "lock":
+            msg = sabotage.lock_door(self.character, self._door(action), self.castle)
+        elif kind == "sabotage":
+            msg = SABOTAGE[data["what"]](self.character, self._find_object(action), self.castle)
+        elif kind == "give":
+            obj = self._find_object(action)
+            msg = obj.give(self.character, obj, self.castle, item = data.get("item"))
+        else:
+            obj = self._find_object(action)
+            msg = obj.search(self.character, self.castle)
+        print(f"[{self.character.name}] {msg}")
     def __call__(self, action):
         kind = action.data.get("kind", "use")
         if self.current is not action:
@@ -102,7 +126,8 @@ class WorldRunner:
                 if result is not None:
                     return result
             if self.phase == "do":
-                self.phase == "wait"
+                self._perform(action, kind)
+                self.phase = "wait"
                 self.timer = 0.0
             state = sense_state(self.character,self.castle,self.others)
             if satisfied(state, action.effects):
@@ -112,29 +137,58 @@ class WorldRunner:
             return "running"
         return self._fail()
 class AIController:
-    def __init__(self, character, castle, agent, runner, walker, manager):
+    def __init__(self, character, castle, agent, runner, walker, manager, others):
         self.character = character
         self.castle = castle
         self.agent = agent
         self.runner = runner
         self.walker = walker
         self.manager = manager
+        self.others = others
+        self.memory = {}
+        self.alert = 0.0
+    def forget(self, key):
+        self.memory.pop(key, None)
+    def _senses(self, dt):
+        raw = sense_state(self.character,self.castle,self.others)
+        seen = [k for k in raw if k.startswith("opp_")]
+        for k in list(self.memory):
+            self.memory[k] -= dt
+            if self.memory[k] <= 0:
+                del self.memory[k]
+        for k in seen:
+            self.memory[k] = MEMORY_TIME
+        state = {k: v for k, v in raw.items() if k.startswith("opp_")}
+        state.update({k: True for k in self.memory})
+        if seen:
+            self.alert = min(10.0, self.alert + dt *0.5)
+        else:
+            self.alert = max(0.0, self.alert - dt *0.02)
+        state["alert"]= max(self.alert, min(4.0, self.castle.time/90.0))
+        return state
     def update(self, dt, navmesh):
         self.runner.tick(dt)
-        state = sense_state(self.character,self.castle)
-        if self.agent.step(state, self.runner) is None:
+        if self.agent.step(self._senses(dt), self.runner) is None:
             self.runner.cancel()
         self.walker.update(dt, navmesh)
     def status_text(self):
         parts = [f"{q.title} ({q.current +1}/{len(q.steps)}): {q.current_text()}" for q in self.manager.active()]
-        return f"{self.character.name}: " + (" | ".join(parts) if parts else "all quests are completed.")
-def make_ai(character, castle, anchors, grid, actions, quests):
+        quest = "| ".join(parts) if parts else "all quests are completed."
+        sees_text = ",".join(sorted(k[4:] for k in self.memory)) or "-"
+        return f"{self.character.name} [alert {self.alert:.1f}, sees {sees_text}]: {quest}"
+def make_ai(character, castle, anchors, grid, actions, quests, others):
     walker = Walker(character, grid)
-    runner = WorldRunner(character, walker,grid, castle, anchors)
+    runner = WorldRunner(character, walker,grid, castle, anchors, others)
     manager = QuestManager(quests)
+    extra = ROLE_GOALS.get(character.state.role)
 
     def goals():
         manager.update(character)
-        return [Goal.from_step(q.steps[q.current]) for q in manager.active()]
+        found = [Goal.from_step(q.steps[q.current]) for q in manager.active()]
+        if extra:
+            found += extra()
+        return found
     agent = Agent(character.name, actions, goals, role = character.state.role, cooldown = 300)
-    return AIController(character, castle, agent, runner, walker, manager)
+    ctrl = AIController(character, castle, agent, runner, walker, manager, others)
+    runner.forget = ctrl.forget
+    return ctrl

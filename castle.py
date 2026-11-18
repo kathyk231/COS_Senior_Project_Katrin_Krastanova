@@ -75,6 +75,8 @@ class Castle:
                 continue
             x = door.position[0] - camera.x
             y = door.position[1] - camera.y
+            if door.locked:
+                color = (220,30,30)
             if door.is_open:
                 color =(0,255,0)
             else:
@@ -90,7 +92,7 @@ class Castle:
         if obj and (d_door > door_reach or obj.distance_to(pos) <= d_door):
             return obj.search(character,self)
         if d_door < door_reach:
-            if door.locked:
+            if door.locked and door.locked_by != character.name:
                 return "The door is locked."
             if not door.open_door(character):
                 if door.pass_flags:
@@ -137,6 +139,10 @@ class Castle:
             self.notices.append(text)
     def update(self,dt):
         self.time += dt
+        for door in self.doors:
+            if door.locked and self.time >=  door.lock_until:
+                door.locked = False
+                door.locked_by = None
         for o in self.interactable:
             follow = o.data.get("follows")
             if follow is not None:

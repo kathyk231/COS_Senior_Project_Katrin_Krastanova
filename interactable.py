@@ -35,12 +35,15 @@ class Interactable:
             if self.per_character:
                 used = self.taken_count.get(character.name,0)
                 if used >= self.max_uses:
+                    character.set_flag(flag)
+                    character.set_flag("missed_" + self.id)
                     return self.empty_text
                 self.taken_count[character.name] = used + 1
             else:
                 if self.looted:
                     if not character.has_flag(flag):
                         character.set_flag("missed_"+ self.id)
+                    character.set_flag(flag)
                     return self.empty_text
                 self.looted = True
             character.inventory.add_item(self.gives)

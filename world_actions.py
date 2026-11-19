@@ -73,7 +73,7 @@ def plain_object_actions(castle, skip):
         effects = {"searched_" + o.id: True}
         if o.gives:
             effects["has_" + o.gives] = True
-        actions.append(Action(f"{o.verb} {o.name} [{o.id}]",{"room": o.room}, effects, 1, data={"kind": "use", "object": o.id}))
+        actions.append(Action(f"{o.verb} {o.name} [{o.id}]",{"room": o.room, "missed_" + o.id: False}, effects, 1, data={"kind": "use", "object": o.id}))
     return actions
 
 def build_world_actions(castle, anchors):
@@ -92,7 +92,7 @@ def special_actions(castle):
             data["wait"] = wait
         if item:
             data["item"] = item
-        out.append(Action(f"{label} [{obj}]", {"room":where[obj],**pre}, eff, cost, roles=roles, data=data))
+        out.append(Action(f"{label} [{obj}]", {"room":where[obj],"missed_" + obj: False,**pre}, eff, cost, roles=roles, data=data))
     for obj, item in (("royal_nightstand", "empty_bottle"), ("queen_desk", "letters"), ("king_nightstand", "overturned_cup"), ("king_vanity", "suspicious_robe")):
         AS("examine", obj, {},{"searched_" + obj: True}, roles={S}),
         AS("take evidence", obj, {}, {"has_" +item: True, "removed_" + obj: True}, roles={R})

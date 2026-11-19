@@ -39,14 +39,15 @@ class Agent:
         self.log = []
         self.running = None
         self.goal_cooldowns ={}
-        self.printed = set()
+        self.last_said = None
+        self.fail_streak = {}
     def say(self, text):
         entry = f"[{self.name}] {text}"
         self.log.append(entry)
         if len(self.log) >200:
-            del self.log[:500]
-        if entry not in self.printed:
-            self.printed.add(entry)
+            del self.log[:100]
+        if entry != self.last_said:
+            self.last_said = entry
             print(entry)
 
     def pick_goal(self, state):
@@ -67,8 +68,9 @@ class Agent:
             self.say(f"goal '{goal.name}': no plan found.")
             self.goal_cooldowns[goal.name] = self.cooldown_steps
     def step(self, state, execute):
-        for name in list(self.cooldowns):
-            self.cooldowns[name] -= 1
+        for table in (self.cooldowns, self.goal_cooldowns):
+            for name in list(table):
+                table[name] -= 1
         goal = self.pick_goal(state)
         if goal is None:
             if self.running is None:
@@ -94,10 +96,13 @@ class Agent:
             return action
         self.running = None
         if result:
+            self.fail_streak.pop(action.name,None)
             self.plan.pop(0)
         else:
             self.say(f"{action.name} failed, replanning.")
-            self.cooldowns[action.name] = self.cooldown_steps
+            streak = self.fail_streak.get(action.name,0) + 1
+            self.fail_streak[action.name] = streak
+            self.cooldowns[action.name] = self.cooldown_steps * min(streak, 6)
             self.plan = []
         return action
 class Action:

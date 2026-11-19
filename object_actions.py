@@ -19,6 +19,7 @@ def evidence_action(clue_text, gone_text,take_text,item=None, needs=None, needs_
         if obj.looted:
             if character.state.role == Role.SERVANT and not character.has_flag("searched_" + obj.id):
                 character.set_flag("missed_" + obj.id)
+                character.set_flag("searched_" + obj.id)
             return gone_text
         if character.state.role == Role.SERVANT:
             character.set_flag("searched_" + obj.id)

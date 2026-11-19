@@ -7,8 +7,11 @@ import sabotage
 from sabotage import MEMORY_TIME, sees
 from role_sabotage import ROLE_GOALS
 
-CHASE_REACH = 45
+CHASE_REACH = 15
+CONFRONT_REACH = 45
 CHASE_TIMEOUT = 25.0
+PURSUIT_MEMORY = 4.0
+CHASE_SPEED = 1.1
 SABOTAGE = {"spoil": lambda ch, obj, castle: sabotage.spoil_wine(ch, obj, castle)}
 
 class WorldRunner:
@@ -24,14 +27,20 @@ class WorldRunner:
         self.phase = None
         self.timer = 0.0
         self.last_path = 0.0
+        self.base_speed = character.speed
+        self.pursuing = None
+        self.lost_at = None
 
     def tick(self, dt):
         self.timer += dt
     def cancel(self):
         self.phase = None
         self.current = None
+        self.character.speed = self.base_speed
         self.walker.stop()
-    def _fail(self):
+    def _fail(self, why=""):
+        if why and self.current is not None:
+            print(f"[{self.character.name}] {self.current.name} aborted: {why}")
         self.cancel()
         return False
     # ----------------- LOOKUPS --------------------
@@ -49,7 +58,16 @@ class WorldRunner:
         return None
     def _chase_target(self,action):
         if action.data.get("kind") == "confront":
-            return self._opponent()
+            opp = self._opponent()
+            if opp is not None:
+                self.pursuing, self.lost_at = opp, None
+                return opp
+            if self.pursuing is not None:
+                if self.lost_at is None:
+                    self.lost_at = self.timer
+                if self.timer - self.lost_at < PURSUIT_MEMORY:
+                    return self.pursuing
+            return None
         obj = self._find_object(action)
         return obj.data.get("follows") if obj is not None else None
     #---------------- WALKING ------------------
@@ -71,20 +89,22 @@ class WorldRunner:
     def walk(self, action, kind):
         chase = self._chase_target(action)
         if chase is not None:
-            if self.character.position.distance_to(chase.position) < CHASE_REACH:
+            reach = CONFRONT_REACH if kind == "confront" else CHASE_REACH
+            if self.character.position.distance_to(chase.position) < reach:
                 self.walker.stop()
                 self.phase = "do"
                 return None
             if self.timer > CHASE_TIMEOUT:
-                return self._fail()
+                return self._fail("could not catch up")
+            self.character.speed = self.base_speed * CHASE_SPEED
             if self.timer - self.last_path >= 0.5:
                 self.last_path = self.timer
                 self.walker.go_to(chase.position)
             if self.walker.status == "failed":
-                return self._fail()
+                return self._fail("no path to the target")
             return "running"
         if kind == "confront":
-            return self._fail()
+            return self._fail("lost sight of the target")
         status = self.walker.status
         if status == "failed":
             return self._fail()
@@ -117,10 +137,12 @@ class WorldRunner:
             obj = self._find_object(action)
             msg = obj.search(self.character, self.castle)
         print(f"[{self.character.name}] {msg}")
+        self.character.speed = self.base_speed
     def __call__(self, action):
         kind = action.data.get("kind", "use")
         if self.current is not action:
             self.current, self.phase, self.timer, self.last_path = action, "walk", 0.0, -1.0
+            self.pursuing = self.lost_at = None
             if not self._start_walk(action, kind):
                 return self._fail()
         if self.phase =="walk":

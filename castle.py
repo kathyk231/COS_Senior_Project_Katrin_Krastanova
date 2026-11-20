@@ -1,13 +1,12 @@
 import pygame
-
-import interactable
 from door import Door
 from player_state import Role
 from create_world_objects import create_interactables, create_props, create_mushroom_trail
 from npcs import create_npcs
+from sabotage import slug
 
 class Castle:
-    CORONATION_TIME =10.0
+    CORONATION_TIME = 15.0
     def __init__(self):
         self.width = 2604
         self.height = 2000
@@ -143,6 +142,8 @@ class Castle:
             if door.locked and self.time >=  door.lock_until:
                 door.locked = False
                 door.locked_by = None
+                for c in self.characters:
+                    c.flags.discard("blocked_" + slug(door.name))
         for o in self.interactable:
             follow = o.data.get("follows")
             if follow is not None:

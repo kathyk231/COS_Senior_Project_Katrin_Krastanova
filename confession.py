@@ -2,13 +2,19 @@ from player_state import Role
 SUSPICION_LIMIT = 2
 BASE_SUSPICION = 2
 TOAST_BONUS = 2
+EVIDENCE_BONUS = 2
+ANNOUNCED = "announce_king_death"
+EVIDENCE = ["overturned_cup", "empty_bottle", "suspicious_robe", "letters"]
 
+def evidence_count(character):
+    return sum(1 for i in EVIDENCE if character.inventory.has(i))
 def suspicion_of(royal, giver):
     s= BASE_SUSPICION
-    if royal.has_flag("announced_king_death"):
+    if royal.has_flag(ANNOUNCED):
         s -= TOAST_BONUS
-    s += royal.suspicion
-    return s
+    if evidence_count(giver) >= 2:
+        s -= EVIDENCE_BONUS
+    return s + royal.suspicion
 
 def royal_accepts(royal, giver):
     return suspicion_of(royal, giver) < SUSPICION_LIMIT
@@ -28,7 +34,7 @@ def offer_cup(giver, royal, world):
         return "Only a servant can serve a Royal."
     if not giver.inventory.has("spiked_wine"):
         return "You have nothing to offer."
-    if royal.is_player:
+    if getattr(royal, "is_player", False):
         world.pending_cup = {"giver": giver, "royal": royal}
         return "A Servant offers you a cup of wine."
     return decision_cup(giver, royal, world, royal_accepts(royal, giver))

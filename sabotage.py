@@ -3,13 +3,25 @@ MEMORY_TIME = 8.0
 LOCK_TIME = 45.0
 SPOIL_TIME = 60.0
 def lock_door(character, door, castle):
+    if castle.time - getattr(door, "last_lock", -999.0) < 90.0:
+        return "You can't lock the door it needs time to reset.."
     for c in castle.characters:
         if c is not character and c.position.distance_to(door.position) < 70:
             return "The door is being used."
     door.locked = True
     door.locked_by = character.name
     door.lock_until = castle.time + LOCK_TIME
+    door.last_lock = castle.time
     return f"{character.name} locks the {door.name}"
+def unlock_door(character, door, castle):
+    door.locked = False
+    door.locked_by = None
+    character.flags.discard("blocked_" + slug(door.name))
+    return f"{character.name} forces the {door.name} open."
+def observe(character, castle):
+    spot = next((o for o in castle.interactable if o.id == "burial_spot"), None)
+    if spot is not None and character.room == spot.room and spot.data.get("buried"):
+        character.set_flag("saw_fresh_soil")
 def spoil_wine(character, barrel, castle):
     barrel.data["blocked_until"] = castle.time + SPOIL_TIME
     barrel.data["blocked_text"] = "The wine smells off. Someone has tampered with it. You must wait for the barrel to be changed."

@@ -17,12 +17,16 @@ def world_facts(castle):
     barrel = next((o for o in castle.interactable if o.id == "wine_barrel"), None)
     if barrel is not None and barrel.data.get("blocked_until", 0) > castle.time:
         facts["wine_spoiled"] = True
+    if any(c.has_flag("announce_king_death") for c in castle.characters if c.state.role == Role.ROYAL):
+        facts["death_announced"] = True
     return facts
 
 def sense_state(character, castle, others=()):
     state = character.facts()
     state.update(world_facts(castle))
     state.update(opponent_facts(character, others))
+    if sum(1 for i in EVIDENCE if character.inventory.has(i)) >= 2:
+        state["evidence_in_hand"] = True
     return state
 
 def door_options(door, role):
@@ -59,7 +63,7 @@ def door_actions(castle, anchors):
                     pre = {"room":src, **extra}
                     if door.hidden:
                         pre["passage_revealed"] = True
-                    actions.append(Action(f"go {src} -> {dst} ({role.value}: {label})", pre, {"room": dst}, cost, roles={role}, data={"kind": "move", "goto_room":dst}))
+                    actions.append(Action(f"go {src} -> {dst} ({role.value}: {label})", pre, {"room": dst}, cost, roles={role}, data={"kind": "move", "goto_room":dst, "door": door.name}))
     return actions
 
 def plain_object_actions(castle, skip):
@@ -106,7 +110,13 @@ def special_actions(castle):
     AS("give wine", "king_guard", {"has_wine": True}, {"guard_drunk": True, "has_wine": False}, roles= {S}, kind= "give", item="wine", cost=4)
     AS("talk to the farmer", "stable_guy", {}, {"talked_stable_guy": True})
     AS("hear farmer story", "stable_guy", {"watered_horses": True, "fed_horses": True}, {"knows_secret_bag": True}, roles={S})
-    AS("offer spiked wine", "royal_npc", {"has_spiked_wine": True}, {"royal_confessed": True, "has_spiked_wine": False}, roles= {S}, kind= "give", item="spiked_wine", cost=2)
+    if "royal_npc" in where:
+        for label, extra in (("at the toast", {"death_announced": True}), ("evidence in hand", {"evidence_in_hand": True})):
+            out.append(Action(f"offer spiked wine ({label})", {"has_spiked_wine": True, **extra},
+               {"royal_confessed": True, "has_spiked_wine": False}, 2, roles={S}, data= {"kind": "give", "object":"royal_npc","item": "spiked_wine"}))
+    out.append(Action("wait for the toast", {"room": "Throne Room", "has_spiked_wine": True}, {"death_announced": True}, 5, roles={S}, data={"kind":"wait", "wait":240}))
+    AS("inspect the loose soil", "burial_spot", {}, {"saw_fresh_soil": True}, roles={S})
+    AS("dig up the evidence", "burial_spot", {"has_spade": True, "saw_fresh_soil": True}, {"evidence_in_hand": True}, roles={S}, cost= 2)
     for item in ("jewelry", "queens_ring"):
         AS(f"bribe with {item}", "king_guard", {"has_" + item: True}, {"bribed_guard": True, "has_" + item:False}, kind="give", item=item)
     for item in ("queens_ring", "jewelry"):
@@ -114,7 +124,7 @@ def special_actions(castle):
     AS("bury evidence", "burial_spot", {"has_spade": True,**{"has_"+i: True for i in EVIDENCE}},{**{"buried_"+i:True for i in EVIDENCE}, **{"has_" +i: False for i in EVIDENCE}}, roles={R})
     for obj in ("podium_speech", "podium_speech_2"):
         AS("announce death", obj, {"has_kings_ring": True, **{**{"buried_"+i:True for i in EVIDENCE}}}, {"announce_king_death": True}, roles={R})
-    AS("sit on throne", "throne_seat",{"announce_king_death": True}, {"crowned": True}, roles={R}, wait= 14)
+    AS("sit on throne", "throne_seat",{"announce_king_death": True}, {"crowned": True}, roles={R}, wait= 20)
     AS("order guard", "king_guard", {}, {"bribed_guard": True}, roles={R}, kind= "give", item="order", cost=4)
     AS("order farmer", "stable_guy", {}, {"bribed_stable_guy": True}, roles={R}, kind= "give", item="order", cost=4)
     return out

@@ -45,18 +45,33 @@ def deliver_action(item,flag,done_text,missing_text, repeat_text="You already di
     return use
 def bury_evidence(character,spot, world=None):
     buried = spot.data.setdefault("buried",[])
-    if character.state.role != Role.ROYAL:
-        return "The soil here looks freshly dug." if buried else "Nothing suspicious here."
+    if character.state.role == Role.ROYAL:
+        if not character.inventory.has("spade"):
+            return "You need a spade to dig here."
+        carried = [i for i in EVIDENCE_ITEMS if character.inventory.has(i)]
+        if not carried:
+            return "You have nothing to bury."
+        for item in carried:
+            character.inventory.remove_item(item)
+            character.set_flag("buried_" + item)
+            buried.append(item)
+        return "You dig a hole and bury " + ", ".join(i.replace("_"," ") for i in carried) + "."
+    if not buried:
+        return "Just soil and roots, nothing suspicious here."
+    character.set_flag("saw_fresh_soil")
     if not character.inventory.has("spade"):
-        return "You need a spade to dig here."
-    carried = [i for i in EVIDENCE_ITEMS if character.inventory.has(i)]
-    if not carried:
-        return "You have nothing to bury."
-    for item in carried:
-        character.inventory.remove_item(item)
-        character.set_flag("buried_" + item)
-        buried.append(item)
-    return "You dig a hole and bury " + ", ".join(i.replace("_"," ") for i in carried) + "."
+        return "The soil here looks freshly dug. You need a spade to dig here."
+    royal = next((c for c in world.characters if c.state.role == Role.ROYAL), None)
+    names = ", ".join(i.replace("_"," ") for i in buried)
+    for item in list(buried):
+        character.inventory.add_item(item)
+        character.set_flag("dug_up_" + item)
+        if royal is not None:
+            royal.flags.discard("buried_"+item)
+    spot.data["buried"] = []
+    if royal is not None:
+        world.notify(royal, "Someone dug up the evidence!!")
+    return "You dig up the evidence: " + names + "."
 
 def announce_king_death(character, podium, world=None):
     if character.state.role != Role.ROYAL:

@@ -23,6 +23,7 @@ class Castle:
         self.time = 0.0
         self.notices = []
         self.characters = []
+        self.sabotage = {}
 
     def create_castle(self):
         self.rooms =[
@@ -76,7 +77,7 @@ class Castle:
             y = door.position[1] - camera.y
             if door.locked:
                 color = (220,30,30)
-            if door.is_open:
+            elif door.is_open:
                 color =(0,255,0)
             else:
                 color =(0,50,255)

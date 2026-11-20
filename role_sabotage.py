@@ -15,7 +15,7 @@ def sabotage_actions(castle):
         fact = "door_locked_" + slug(door.name)
         for room in (a,b):
             actions.append(Action(f"lock {door.name} (from {room})", {"room": room}, {"door_locked_" + slug(door.name): True}, 2, roles={R}, data={"kind": "lock", "door": door.name}))
-            actions.append(Action(f"unlock {door.name} (from {room})", {"room": room, fact: True}, {fact: True}, 2, roles={S}, data={"kind": "unlock", "door": door.name}))
+            actions.append(Action(f"unlock {door.name} (from {room})", {"room": room, fact: True}, {fact: False}, 2, roles={S}, data={"kind": "unlock", "door": door.name}))
 
     for item in CONFISCATE:
         actions.append(Action(f"confiscate {item}", {"opp_visible": True, "opp_has_" + item:True}, {"has_"+item:True}, 1, roles={R}, data={"kind":"confront","mode":"take", "item":item}))
@@ -28,10 +28,10 @@ def sabotage_actions(castle):
 def royal_goals():
     alert = lambda s: s.get("alert", 0)
     goals = [
-        Goal("destroy the serum", {"opp_has_truth_serum": False}, lambda s: 9 if s.get("opp_has_truth_serum") else 0),
-        Goal("lock the Kings door", {"door_locked_kings_door": True}, lambda s: 6 if s.get("opp_in_throne_room") or s.get("opp_in_entrance_hall") else 0),
-        Goal("lock the Corridor door", {"door_locked_corridor_door": True}, lambda s: 5 if s.get("opp_in_corridor") else 0),
-        Goal("spoil the wine", {"wine_spoiled": True}, lambda s: 7 if s.get("opp_has_truth_serum") or alert(s) >= 7 else 0),
+        Goal("destroy the serum", {"opp_has_truth_serum": False}, lambda s: 9 if s.get("opp_has_truth_serum") and not s.get("destroy_used_up") else 0),
+        Goal("lock the Kings door", {"door_locked_kings_door": True}, lambda s: 6 if (s.get("opp_in_throne_room") or s.get("opp_in_entrance_hall")) and alert(s) >=2 else 0),
+        Goal("lock the Corridor door", {"door_locked_corridor_door": True}, lambda s: 5 if s.get("opp_in_corridor") and alert(s)>=2 else 0),
+        Goal("spoil the wine", {"wine_spoiled": True}, lambda s: 7 if s.get("opp_has_truth_serum") and not s.get("spoil_on_cooldown") else 0),
         Goal("retake the king's ring", {"has_kings_ring":True}, lambda s: 8 if s.get("opp_has_kings_ring") else 0),
         Goal("retake the jewelry", {"has_jewelry": True}, lambda s: 5 if s.get("opp_has_jewelry") else 0),
         Goal("silence the guard", {"bribed_guard": True}, lambda s: 4 if alert(s) >= 2 else 0),
@@ -46,16 +46,13 @@ def royal_goals():
         goals.append(Goal(f"retake the {item}", {"has_" + item:True}, lambda s, i=item: 8 if s.get("opp_has_" + i) else 0))
     return goals
 def servant_goals():
-    alert = lambda s: s.get("alert", 0)
-    noticed_missing = lambda s: any(s.get(k) for k in ("missed_king_nightstand", "missed_king_vanity", "missed_king_carpet", "missed_royal_nightstand"))
     goals = []
     for door in LOCKABLE:
         fact, blocked = "door_locked_" + slug(door), "blocked_" + slug(door)
         goals.append(Goal(f"unlock the {door}", {fact: False}, lambda s, f=fact, b=blocked: 6 if s.get(b) and s.get(f) else 0))
     goals += [
         Goal("grab the kings ring", {"has_kings_ring": True}, lambda s: 4 if (s.get("bribed_guard") or s.get("guard_drunk")) and not s.get("missed_king_bed") and not s.get("has_kings_ring") else 0),
-        Goal("check the loose soil", {"saw_fresh_soil": True}, lambda s: 3 if (noticed_missing(s) or alert(s) >= 3) and not s.get("saw_fresh_soil") else 0),
-        Goal("dig up the evidence", {"evidence_in_hand": True}, lambda s: 5 if s.get("saw_fresh_soil") else 0)
+        Goal("dig up the evidence", {"evidence_in_hand": True}, lambda s: 5 if s.get("saw_fresh_soil") and not s.get("dug_up_evidence") else 0)
     ]
     return goals
 ROLE_GOALS = {Role.ROYAL: royal_goals, Role.SERVANT: servant_goals}

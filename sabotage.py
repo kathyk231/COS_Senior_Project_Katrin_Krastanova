@@ -2,6 +2,16 @@ SIGHT = 800
 MEMORY_TIME = 8.0
 LOCK_TIME = 45.0
 SPOIL_TIME = 60.0
+SPOIL_COOLDOWN = 150.0
+MAX_DESTROYS = 1
+COURT_TIME =240.0
+def mark(castle, key):
+    castle.sabotage.setdefault(key, []).append(castle.time)
+def spoil_ready(castle):
+    times = castle.sabotage.get("spoil", [])
+    return not times or castle.time - times[-1] >= SPOIL_COOLDOWN
+def destroy_ready(castle):
+    return len(castle.sabotage.get("destroy", [])) < MAX_DESTROYS
 def lock_door(character, door, castle):
     if castle.time - getattr(door, "last_lock", -999.0) < 90.0:
         return "You can't lock the door it needs time to reset.."
@@ -23,14 +33,16 @@ def observe(character, castle):
     if spot is not None and character.room == spot.room and spot.data.get("buried"):
         character.set_flag("saw_fresh_soil")
 def spoil_wine(character, barrel, castle):
+    mark(castle, "destroy")
     barrel.data["blocked_until"] = castle.time + SPOIL_TIME
     barrel.data["blocked_text"] = "The wine smells off. Someone has tampered with it. You must wait for the barrel to be changed."
     return f"{character.name} spoils the wine."
 def confront(royal, victim, mode, item, castle):
     if not victim.inventory.remove_item(item):
         return f"{victim.name} is not carrying the {item}"
-    name = item.replace("_", "")
+    name = item.replace("_", " ")
     if mode == "destroy":
+        mark(castle, "destroy")
         if item == "truth_serum":
             victim.flags.discard("brewed_truth_serum")
             for o in castle.interactable:

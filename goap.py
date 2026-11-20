@@ -41,8 +41,12 @@ class Agent:
         self.goal_cooldowns ={}
         self.last_said = None
         self.fail_streak = {}
+        self.give_up=3
+        self.on_stuck = None
+        self.clock = None
     def say(self, text):
-        entry = f"[{self.name}] {text}"
+        stamp =f"{self.clock():5.0f}s " if self.clock else ""
+        entry = f"{stamp}[{self.name}] {text}"
         self.log.append(entry)
         if len(self.log) >200:
             del self.log[:100]
@@ -63,15 +67,23 @@ class Agent:
         self.goal = goal
         self.plan = found or []
         if found:
+            self.fail_streak.pop(goal.name, None)
             self.say(f"goal '{goal.name}': " + " > ".join(a.name for a in self.plan))
         else:
             self.say(f"goal '{goal.name}': no plan found.")
-            self.goal_cooldowns[goal.name] = self.cooldown_steps
+            n = self.fail_streak.get(goal.name,0) +1
+            self.fail_streak[goal.name] = n
+            self.goal_cooldowns[goal.name] = self.cooldown_steps * min(2**(n-1), 12)
+            if n >= self.give_up and self.on_stuck:
+                self.fail_streak.pop(goal.name)
+                self.on_stuck(goal)
     def step(self, state, execute):
         for table in (self.cooldowns, self.goal_cooldowns):
             for name in list(table):
                 table[name] -= 1
         goal = self.pick_goal(state)
+        if self.goal is not None and self.goal.is_satisfied(state):
+            self.fail_streak.pop(self.goal.name, None)
         if goal is None:
             if self.running is None:
                 self.goal, self.plan = None, []

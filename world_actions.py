@@ -1,7 +1,7 @@
 import pygame
 from goap import Action
 from player_state import Role
-from sabotage import slug, opponent_facts
+from sabotage import slug, opponent_facts, spoil_ready, destroy_ready, COURT_TIME
 
 ROLES = list(Role)
 SERUM = ["potion_bottle", "truth_berry", "light_essence", "tooth_leaf", "phoenix_feather"]
@@ -19,6 +19,15 @@ def world_facts(castle):
         facts["wine_spoiled"] = True
     if any(c.has_flag("announce_king_death") for c in castle.characters if c.state.role == Role.ROYAL):
         facts["death_announced"] = True
+    if not spoil_ready(castle):
+        facts["spoil_on_cooldown"] =True
+    if not destroy_ready(castle):
+        facts["destroy_used_up"] = True
+    for o in castle.interactable:
+        if o.data.get("blocked_until", 0) > castle.time:
+            facts["blocked_" + o.id] = True
+    if castle.time >= COURT_TIME:
+        facts["court_assembled"] = True
     return facts
 
 def sense_state(character, castle, others=()):
@@ -77,7 +86,7 @@ def plain_object_actions(castle, skip):
         effects = {"searched_" + o.id: True}
         if o.gives:
             effects["has_" + o.gives] = True
-        actions.append(Action(f"{o.verb} {o.name} [{o.id}]",{"room": o.room, "missed_" + o.id: False}, effects, 1, data={"kind": "use", "object": o.id}))
+        actions.append(Action(f"{o.verb} {o.name} [{o.id}]",{"room": o.room, "missed_" + o.id: False, "blocked_" + o.id:False}, effects, 1, data={"kind": "use", "object": o.id}))
     return actions
 
 def build_world_actions(castle, anchors):
@@ -96,7 +105,7 @@ def special_actions(castle):
             data["wait"] = wait
         if item:
             data["item"] = item
-        out.append(Action(f"{label} [{obj}]", {"room":where[obj],"missed_" + obj: False,**pre}, eff, cost, roles=roles, data=data))
+        out.append(Action(f"{label} [{obj}]", {"room":where[obj],"missed_" + obj: False,"blocked_" +obj: False,**pre}, eff, cost, roles=roles, data=data))
     for obj, item in (("royal_nightstand", "empty_bottle"), ("queen_desk", "letters"), ("king_nightstand", "overturned_cup"), ("king_vanity", "suspicious_robe")):
         AS("examine", obj, {},{"searched_" + obj: True}, roles={S}),
         AS("take evidence", obj, {}, {"has_" +item: True, "removed_" + obj: True}, roles={R})
@@ -115,15 +124,15 @@ def special_actions(castle):
             out.append(Action(f"offer spiked wine ({label})", {"has_spiked_wine": True, **extra},
                {"royal_confessed": True, "has_spiked_wine": False}, 2, roles={S}, data= {"kind": "give", "object":"royal_npc","item": "spiked_wine"}))
     out.append(Action("wait for the toast", {"room": "Throne Room", "has_spiked_wine": True}, {"death_announced": True}, 5, roles={S}, data={"kind":"wait", "wait":240}))
-    AS("inspect the loose soil", "burial_spot", {}, {"saw_fresh_soil": True}, roles={S})
     AS("dig up the evidence", "burial_spot", {"has_spade": True, "saw_fresh_soil": True}, {"evidence_in_hand": True}, roles={S}, cost= 2)
     for item in ("jewelry", "queens_ring"):
-        AS(f"bribe with {item}", "king_guard", {"has_" + item: True}, {"bribed_guard": True, "has_" + item:False}, kind="give", item=item)
+        AS(f"bribe with {item}", "king_guard", {"has_" + item: True, "guard_loyal_to_royal":False}, {"bribed_guard": True, "has_" + item:False}, kind="give", item=item)
     for item in ("queens_ring", "jewelry"):
         AS(f"bribe with {item}", "stable_guy", {"has_" +item: True}, {"bribed_stable_guy":True,"has_"+item:False},roles={R}, kind="give", item=item)
     AS("bury evidence", "burial_spot", {"has_spade": True,**{"has_"+i: True for i in EVIDENCE}},{**{"buried_"+i:True for i in EVIDENCE}, **{"has_" +i: False for i in EVIDENCE}}, roles={R})
     for obj in ("podium_speech", "podium_speech_2"):
-        AS("announce death", obj, {"has_kings_ring": True, **{**{"buried_"+i:True for i in EVIDENCE}}}, {"announce_king_death": True}, roles={R})
+        AS("announce death", obj, {"has_kings_ring": True,"court_assembled":True, **{**{"buried_"+i:True for i in EVIDENCE}}}, {"announce_king_death": True}, roles={R})
+    out.append(Action("wait for the court to assemble", {"room":"Throne Room"}, {"court_assembled": True}, 5, roles={R},data={"kind":"wait", "wait":700}))
     AS("sit on throne", "throne_seat",{"announce_king_death": True}, {"crowned": True}, roles={R}, wait= 20)
     AS("order guard", "king_guard", {}, {"bribed_guard": True}, roles={R}, kind= "give", item="order", cost=4)
     AS("order farmer", "stable_guy", {}, {"bribed_stable_guy": True}, roles={R}, kind= "give", item="order", cost=4)

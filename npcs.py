@@ -36,6 +36,7 @@ def give_guard(character, guard, world=None, item =None):
         character.set_flag("guard_drunk")
         return "The guard takes the wine and dozes off. You can sneak past him now."
     if role == Role.SERVANT and guard.data.get("paid_by") == "royal":
+        character.set_flag("guard_loyal_to_royal")
         return "Guard: I serve only the Royal. I won't accept anything from you."
     for it in([item] if item else GUARD_BRIBES):
         if it in GUARD_BRIBES and character.inventory.remove_item(it):

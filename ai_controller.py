@@ -13,6 +13,9 @@ CHASE_TIMEOUT = 25.0
 PURSUIT_MEMORY = 4.0
 CHASE_SPEED = 1.1
 SABOTAGE = {"spoil": lambda ch, obj, castle: sabotage.spoil_wine(ch, obj, castle)}
+SUSPICIOUS = ("opp_in_kings_room", "opp_in_hidden_passage", "opp_has_kings_ring",
+              "opp_has_truth_serum", "opp_has_spiked_wine", "opp_has_overturned_cup",
+              "opp_has_empty_bottle", "opp_has_suspicious_robe", "opp_has_letters")
 
 class WorldRunner:
     def __init__(self, character, walker,grid, castle, anchors, others):
@@ -82,9 +85,14 @@ class WorldRunner:
             return True
         if kind == "move":
             target = self.anchors.get(action.data["goto_room"])
-        elif kind == ("lock", "unlock"):
+        elif kind in ("lock", "unlock"):
             door = self._door(action)
-            target = self.grid.anchor(door.position) if door else None
+            target = None
+            if door is not None:
+                target = self.grid.anchor(door.position) if door else None
+            if target is None:
+                target = self.anchors.get(action.preconditions.get("room"))
+            print(f"[debug] {action.name}: door={door.name if door else None}, target={target}")
         else:
             obj = self._find_object(action)
             target = self.grid.stand_point(obj) if obj else None
@@ -113,7 +121,7 @@ class WorldRunner:
             return self._fail("lost sight of the target")
         status = self.walker.status
         if status == "failed":
-            return self._fail()
+            return self._fail("the walk failed")
         if status != "arrived":
             return "running"
         self.walker.stop()
@@ -156,10 +164,8 @@ class WorldRunner:
                 self.walker.stop()
                 self.phase = "do"
             elif not self._start_walk(action, kind):
-                return self._fail()
+                return self._fail("no place to walk to")
             self.pursuing = self.lost_at = None
-            if not self._start_walk(action, kind):
-                return self._fail()
         if self.phase =="walk":
             result = self.walk(action, kind)
             if result is not None:
@@ -200,11 +206,12 @@ class AIController:
             self.memory[k] = MEMORY_TIME
         state = {k: v for k, v in raw.items() if not k.startswith("opp_")}
         state.update({k: True for k in self.memory})
-        if seen:
-            self.alert = min(10.0, self.alert + dt *0.5)
+        if any(k in raw for k in SUSPICIOUS):
+            self.alert = min(10.0, self.alert + dt *0.3)
         else:
-            self.alert = max(0.0, self.alert - dt *0.02)
-        state["alert"]= max(self.alert, min(4.0, self.castle.time/90.0))
+            self.alert = max(0.0, self.alert - dt *0.03)
+        state["alert"]= max(self.alert, min(3.0, self.castle.time/120.0))
+        state["clock"] = self.castle.time
         return state
     def update(self, dt, navmesh):
         self.runner.tick(dt)
@@ -229,6 +236,14 @@ def make_ai(character, castle, anchors, grid, actions, quests, others):
             found += extra()
         return found
     agent = Agent(character.name, actions, goals, role = character.state.role, cooldown = 300)
+    def skip_step(goal):
+        for q in manager.active():
+            if q.steps[q.current].text == goal.name:
+                q.current += 1
+                print(f"[{character.name}] gives up on '{goal.name}' and moves on")
+                break
+    agent.on_stuck = skip_step
+    agent.clock = lambda: castle.time
     ctrl = AIController(character, castle, agent, runner, walker, manager, others)
     runner.forget = ctrl.forget
     return ctrl

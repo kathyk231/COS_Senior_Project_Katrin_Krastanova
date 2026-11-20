@@ -147,6 +147,8 @@ def main():
                     player.update(dt, navmesh)
                 for ctrl in ctrls:
                     ctrl.update(dt, navmesh)
+            if castle.result:
+                break
             text = castle.update(dt)
             if text:
                 messages.say(text)

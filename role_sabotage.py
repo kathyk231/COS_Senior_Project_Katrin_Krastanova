@@ -3,7 +3,7 @@ from goap import Action, Goal
 from sabotage import slug
 from world_actions import door_edges, EVIDENCE
 
-R = Role.ROYAL
+R, S = Role.ROYAL, Role.SERVANT
 LOCKABLE = ["Kings door", "Corridor door"]
 CONFISCATE = ["kings_ring", "jewelry", "queens_ring"] + EVIDENCE
 
@@ -58,4 +58,4 @@ def servant_goals():
         Goal("dig up the evidence", {"evidence_in_hand": True}, lambda s: 5 if s.get("saw_fresh_soil") else 0)
     ]
     return goals
-ROLE_GOALS = {Role.ROYAL: royal_goals, Role.SERVANT: servant_goals()}
+ROLE_GOALS = {Role.ROYAL: royal_goals, Role.SERVANT: servant_goals}

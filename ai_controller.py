@@ -38,9 +38,15 @@ class WorldRunner:
         self.current = None
         self.character.speed = self.base_speed
         self.walker.stop()
-    def _fail(self, why=""):
-        if why and self.current is not None:
-            print(f"[{self.character.name}] {self.current.name} aborted: {why}")
+    def _fail(self, why =""):
+        action = self.current
+        if action is not None:
+            if why:
+                print(f"[{self.character.name}] {action.name} aborted: {why}")
+            if action.data.get("kind") == "move":
+                door = self._door(action)
+                if door is not None and door.locked and door.locked_by != self.character.name:
+                    self.character.set_flag("blocked_" + sabotage.slug(door.name))
         self.cancel()
         return False
     # ----------------- LOOKUPS --------------------
@@ -76,7 +82,7 @@ class WorldRunner:
             return True
         if kind == "move":
             target = self.anchors.get(action.data["goto_room"])
-        elif kind == "lock":
+        elif kind == ("lock", "unlock"):
             door = self._door(action)
             target = self.grid.anchor(door.position) if door else None
         else:
@@ -119,7 +125,11 @@ class WorldRunner:
     # ------------- PERFORM AN ACTION -----------
     def _perform(self, action, kind):
         data = action.data
-        if kind == "confront":
+        if kind == "wait":
+            return
+        if kind == "unlock":
+            msg = sabotage.unlock_door(self.character, self._door(action), self.castle)
+        elif kind == "confront":
             target = self._chase_target(action)
             if target is None:
                 msg = "Noone there."
@@ -142,6 +152,11 @@ class WorldRunner:
         kind = action.data.get("kind", "use")
         if self.current is not action:
             self.current, self.phase, self.timer, self.last_path = action, "walk", 0.0, -1.0
+            if kind =="wait":
+                self.walker.stop()
+                self.phase = "do"
+            elif not self._start_walk(action, kind):
+                return self._fail()
             self.pursuing = self.lost_at = None
             if not self._start_walk(action, kind):
                 return self._fail()
@@ -174,6 +189,7 @@ class AIController:
     def forget(self, key):
         self.memory.pop(key, None)
     def _senses(self, dt):
+        sabotage.observe(self.character, self.castle)
         raw = sense_state(self.character,self.castle,self.others)
         seen = [k for k in raw if k.startswith("opp_")]
         for k in list(self.memory):

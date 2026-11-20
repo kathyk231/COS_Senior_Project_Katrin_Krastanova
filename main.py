@@ -7,12 +7,13 @@ from ui import MessageLog,QuestLog
 from quests import QuestManager
 from servant_quests import create_servant_quests
 from royal_quests import create_royal_quests
-from confession import decision_cup, offer_cup
+from confession import decision_cup, offer_cup, ANNOUNCED
 from character import Character
 from world_setup import create_world
-from world_actions import build_world_actions
+from world_actions import build_world_actions, EVIDENCE
 from ai_controller import make_ai
 from role_sabotage import sabotage_actions
+
 
 WIDTH, HEIGHT, FPS = 960, 540, 60
 SPEEDS = [1,3,8]
@@ -83,7 +84,7 @@ def main():
             elif castle.result:
                 continue
             elif key == pygame.K_F1 and royal:
-                royal.set_flag("announce_king_death")
+                royal.set_flag(ANNOUNCED)
                 messages.say("DEBUG: announced the death")
             elif key == pygame.K_F2 and player and ROLE == Role.ROYAL:
                 fake = Character("Servant", (0, 0), PlayerState(Role.SERVANT))
@@ -100,7 +101,34 @@ def main():
                         ctrl.character.inventory.add_item("truth_serum" if key == pygame.K_F6 else "kings_ring")
             elif key == pygame.K_F8:
                 door = next(d for d in castle.doors if d.name == "Kings door")
-                messages.say(lock_door(ai_chars[0], door, castle))
+                messages.say(lock_door(royal, door, castle))
+            elif key == pygame.K_F10:
+                for ctrl in ctrls:
+                    if ctrl.character.state.role == Role.SERVANT:
+                        ctrl.character.inventory.add_item("spiked_wine")
+                        ctrl.character.inventory.add_item("corridor_key")
+                        ctrl.character.inventory.add_item("kitchen_key")
+                        for q in ctrl.manager.quests[:4]:
+                            q.current = len(q.steps)
+                        ctrl.manager.quests[4].current = 5
+                        ctrl.runner.cancel()
+                        ctrl.agent.plan, ctrl.agent.running = [], None
+            elif key == pygame.K_F11:
+                spot = next(o for o in castle.interactable if o.id == "burial_spot")
+                spot.data["buried"] = list(EVIDENCE)
+                if royal:
+                    for item in EVIDENCE:
+                        royal.set_flag("buried_" + item)
+                for ctrl in ctrls:
+                    ctrl.alert = max(ctrl.alert, 5.0)
+            elif key == pygame.K_F12:
+                door = next(d for d in castle.doors if d.name == "Kings door")
+                lock_door(royal, door, castle)
+                for ctrl in ctrls:
+                    if ctrl.character.state.role == Role.SERVANT:
+                        ctrl.character.set_flag("guard_drunk")
+                        ctrl.runner.cancel()
+                        ctrl.agent.plan, ctrl.agent.running = [], None
             elif player and key == pygame.K_e:
                 text = castle.interact(player)
                 if text:

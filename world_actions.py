@@ -82,7 +82,7 @@ def plain_object_actions(castle, skip):
 
 def build_world_actions(castle, anchors):
     specials = special_actions(castle)
-    skip = {a.data["object"] for a in specials}
+    skip = {a.data["object"] for a in specials if "object" in a.data}
     return door_actions(castle, anchors) + plain_object_actions(castle, skip) + specials
 def special_actions(castle):
     where = {o.id: o.room for o in castle.interactable}

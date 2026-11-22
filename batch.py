@@ -96,6 +96,34 @@ def wilson(k,n,z=1.96):
     half = z* math.sqrt(p*(1-p)/n+z*z/(4*n*n))/d
     return center - half, center + half
 
+def summarize(label, rows):
+    n = len(rows)
+    sw = sum(r["winner"] == "servant" for r in rows)
+    rw = sum(r["winner"] == "royal" for r in rows)
+    nw = sum(r["winner"] == "none" for r in rows)
+    lo, hi = wilson(sw, n)
+    return {"label": label, "n":n,"servant":sw,"royal":rw, "none":nw, "rate": sw/n, "lo":lo, "hi":hi, "mean_time":sum(r["game_time"] for r in rows)/n}
+def print_summary(s):
+    flag = " <- in 40-60% target" if 0.4 <= s["rate"] <= 0.6 else ""
+    print(f"{s['label']:26} n={s['n']:3}  servant {s['servant':3]}  ({s['rate']:5.1%}, "
+          f"95% CI {s['lo']:.0%}-{s['hi']:.0%}   royal {s['royal']:3}   none  {s['none']:2}"
+          f"mean {s['mean_time']:5.0f}s{flag}")
+def repro(seed=7):
+    skip = {"wall_s", "servant_plan_s", "royal_plan_s"}
+    strip = lambda r: {k:v for k, v in r.items() if k not in skip}
+    a, b, c = run_game(seed, "repro"), run_game(seed, "repro"), run_game(seed + 1, "repro")
+    print("same seed gives the same game:     ", strip(a) == strip(b))
+    print("different seed gives a different one: ", strip(a) != strip(c))
 
 if __name__ == "__main__":
-    ...
+    args = sys.argv[1:]
+    if "--repro" in args:
+        repro()
+        sys.exit()
+    n = int(args[0]) if args else 10
+    ov = {k: ast.literal_eval(v) for k,v in (a.split("=", 1) for a in args[1:])}
+    workers = int(ov.pop("workers", 1))
+    rows = run_batch("custom", n, workers=workers, **ov)
+    for r in rows[:5]:
+        print(r["seed"], r["winner"], r["how"], r["game_time"], "wall", r["wall_s"])
+    print_summary(summarize("custom" + " ".join(args[1:]), rows))

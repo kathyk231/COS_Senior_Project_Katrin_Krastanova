@@ -1,7 +1,8 @@
 from player_state import Role
 from goap import Action, Goal
-from sabotage import slug
+from sabotage import slug, PATROL_ROOMS
 from world_actions import door_edges, EVIDENCE
+from settings import cfg
 
 R, S = Role.ROYAL, Role.SERVANT
 LOCKABLE = ["Kings door", "Corridor door"]
@@ -23,10 +24,12 @@ def sabotage_actions(castle):
     barrel = next((o for o in castle.interactable if o.id == "wine_barrel"), None)
     if barrel is not None:
         actions.append(Action("spoil the wine [wine_barrel]", {"room": barrel.room}, {"wine_spoiled": True}, 2, roles={R}, data={"kind":"sabotage", "what":"spoil", "object": "wine_barrel"}))
+    for room in PATROL_ROOMS:
+        actions.append(Action(f"patrol {room}", {}, {"fresh_" + slug(room): True}, 3, roles ={R}, data= {"kind":"move", "goto_room": room}))
     return actions
 
 def royal_goals():
-    alert = lambda s: s.get("alert", 0)
+    alert = lambda s: s.get("alert", 0) - cfg.alert_shift
     goals = [
         Goal("destroy the serum", {"opp_has_truth_serum": False}, lambda s: 9 if s.get("opp_has_truth_serum") and not s.get("destroy_used_up") else 0),
         Goal("lock the Kings door", {"door_locked_kings_door": True}, lambda s: 6 if (s.get("opp_in_throne_room") or s.get("opp_in_entrance_hall")) and alert(s) >=2 else 0),
@@ -44,6 +47,9 @@ def royal_goals():
     ]
     for item in EVIDENCE:
         goals.append(Goal(f"retake the {item}", {"has_" + item:True}, lambda s, i=item: 8 if s.get("opp_has_" + i) else 0))
+    waiting = lambda s: (cfg.patrol and s.get("buried_letters") and not s.get("court_assembled") and not s.get("announce_king_death"))
+    for room in PATROL_ROOMS:
+        goals.append(Goal(f"patrol the {room}", {"fresh_" +slug(room): True}, lambda s: 2 if waiting(s) else 0))
     return goals
 def servant_goals():
     goals = []

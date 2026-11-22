@@ -1,8 +1,10 @@
 from ai_movement import Walker
 from goap import Goal, Agent, satisfied
 from quests import QuestManager
-from world_actions import sense_state
+from world_actions import sense_state, jitter_costs
 import pygame
+from settings import cfg
+
 import sabotage
 from sabotage import MEMORY_TIME, sees
 from role_sabotage import ROLE_GOALS
@@ -12,6 +14,7 @@ CONFRONT_REACH = 45
 CHASE_TIMEOUT = 25.0
 PURSUIT_MEMORY = 4.0
 CHASE_SPEED = 1.1
+COOLDOWN_SECONDS = 5.0
 SABOTAGE = {"spoil": lambda ch, obj, castle: sabotage.spoil_wine(ch, obj, castle)}
 SUSPICIOUS = ("opp_in_kings_room", "opp_in_hidden_passage", "opp_has_kings_ring",
               "opp_has_truth_serum", "opp_has_spiked_wine", "opp_has_overturned_cup",
@@ -33,6 +36,8 @@ class WorldRunner:
         self.base_speed = character.speed
         self.pursuing = None
         self.lost_at = None
+        self.quiet = False
+        self.hold = 0.0
 
     def tick(self, dt):
         self.timer += dt
@@ -44,7 +49,7 @@ class WorldRunner:
     def _fail(self, why =""):
         action = self.current
         if action is not None:
-            if why:
+            if why and not self.quiet:
                 print(f"[{self.character.name}] {action.name} aborted: {why}")
             if action.data.get("kind") == "move":
                 door = self._door(action)
@@ -92,7 +97,6 @@ class WorldRunner:
                 target = self.grid.anchor(door.position) if door else None
             if target is None:
                 target = self.anchors.get(action.preconditions.get("room"))
-            print(f"[debug] {action.name}: door={door.name if door else None}, target={target}")
         else:
             obj = self._find_object(action)
             target = self.grid.stand_point(obj) if obj else None
@@ -154,18 +158,27 @@ class WorldRunner:
         else:
             obj = self._find_object(action)
             msg = obj.search(self.character, self.castle)
-        print(f"[{self.character.name}] {msg}")
+        if not self.quiet:
+            print(f"[{self.character.name}] {msg}")
         self.character.speed = self.base_speed
     def __call__(self, action):
         kind = action.data.get("kind", "use")
         if self.current is not action:
-            self.current, self.phase, self.timer, self.last_path = action, "walk", 0.0, -1.0
+            self.current, self.phase, self.timer, self.last_path = action, "think", 0.0, -1.0
+            self.pursuing = self.lost_at = None
+            self.hold = 0.0
+            if kind != "move" and cfg.think_delay:
+                self.hold = cfg.rng_think.uniform(*cfg.think_delay)
+        if self.phase == "think":
+            if self.timer < self.hold:
+                return "running"
+            self.timer = 0.0
+            self.phase = "walk"
             if kind =="wait":
                 self.walker.stop()
                 self.phase = "do"
             elif not self._start_walk(action, kind):
                 return self._fail("no place to walk to")
-            self.pursuing = self.lost_at = None
         if self.phase =="walk":
             result = self.walk(action, kind)
             if result is not None:
@@ -207,7 +220,7 @@ class AIController:
         state = {k: v for k, v in raw.items() if not k.startswith("opp_")}
         state.update({k: True for k in self.memory})
         if any(k in raw for k in SUSPICIOUS):
-            self.alert = min(10.0, self.alert + dt *0.3)
+            self.alert = min(10.0, self.alert + dt *cfg.alert_gain)
         else:
             self.alert = max(0.0, self.alert - dt *0.03)
         state["alert"]= max(self.alert, min(3.0, self.castle.time/120.0))
@@ -224,10 +237,12 @@ class AIController:
         sees_text = ",".join(sorted(k[4:] for k in self.memory)) or "-"
         return f"{self.character.name} [alert {self.alert:.1f}, sees {sees_text}]: {quest}"
 def make_ai(character, castle, anchors, grid, actions, quests, others):
+    actions = jitter_costs(actions, cfg.rng_cost, cfg.cost_noise)
     walker = Walker(character, grid)
     runner = WorldRunner(character, walker,grid, castle, anchors, others)
     manager = QuestManager(quests)
     extra = ROLE_GOALS.get(character.state.role)
+    runner.quiet = cfg.quiet
 
     def goals():
         manager.update(character)
@@ -235,12 +250,15 @@ def make_ai(character, castle, anchors, grid, actions, quests, others):
         if extra:
             found += extra()
         return found
-    agent = Agent(character.name, actions, goals, role = character.state.role, cooldown = 300)
+    agent = Agent(character.name, actions, goals, role = character.state.role, cooldown = int(COOLDOWN_SECONDS/cfg.step))
+    agent.quiet = cfg.quiet
     def skip_step(goal):
         for q in manager.active():
             if q.steps[q.current].text == goal.name:
                 q.current += 1
-                print(f"[{character.name}] gives up on '{goal.name}' and moves on")
+                agent.stats["steps_skipped"] += 1
+                if not cfg.quiet:
+                    print(f"[{character.name}] gives up on '{goal.name}' and moves on")
                 break
     agent.on_stuck = skip_step
     agent.clock = lambda: castle.time

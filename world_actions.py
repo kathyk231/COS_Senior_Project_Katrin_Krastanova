@@ -1,7 +1,9 @@
 import pygame
 from goap import Action
 from player_state import Role
-from sabotage import slug, opponent_facts, spoil_ready, destroy_ready, COURT_TIME
+from sabotage import slug, opponent_facts, spoil_ready, destroy_ready, fresh_facts
+import copy
+from settings import cfg
 
 ROLES = list(Role)
 SERUM = ["potion_bottle", "truth_berry", "light_essence", "tooth_leaf", "phoenix_feather"]
@@ -26,7 +28,7 @@ def world_facts(castle):
     for o in castle.interactable:
         if o.data.get("blocked_until", 0) > castle.time:
             facts["blocked_" + o.id] = True
-    if castle.time >= COURT_TIME:
+    if castle.time >= cfg.court_time:
         facts["court_assembled"] = True
     return facts
 
@@ -34,10 +36,19 @@ def sense_state(character, castle, others=()):
     state = character.facts()
     state.update(world_facts(castle))
     state.update(opponent_facts(character, others))
+    state.update(fresh_facts(character, castle))
     if sum(1 for i in EVIDENCE if character.inventory.has(i)) >= 2:
         state["evidence_in_hand"] = True
     return state
-
+def jitter_costs(actions, rng, noise):
+    if not noise:
+        return list(actions)
+    out = []
+    for a in actions:
+        b = copy.copy(a)
+        b.cost = a.cost * (1.0 + rng.uniform(-noise, noise))
+        out.append(b)
+    return out
 def door_options(door, role):
     if role in door.allowed_role:
         return [("role", {})]

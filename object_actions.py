@@ -1,5 +1,6 @@
 from player_state import Role
-from sabotage import COURT_TIME
+from settings import cfg
+from sabotage import mark
 
 EVIDENCE_ITEMS = ["overturned_cup", "empty_bottle", "suspicious_robe", "letters"]
 COUP_REQUIREMENTS = ["buried_" + i for i in EVIDENCE_ITEMS]
@@ -70,6 +71,7 @@ def bury_evidence(character,spot, world=None):
         character.set_flag("dug_up_" + item)
         if royal is not None:
             royal.flags.discard("buried_"+item)
+    mark(world, "dig")
     spot.data["buried"] = []
     if royal is not None:
         world.notify(royal, "Someone dug up the evidence!!")
@@ -81,7 +83,7 @@ def announce_king_death(character, podium, world=None):
         return "Only the Royal is allowed to address the Court."
     if not character.inventory.has("kings_ring"):
         return "Without the kings ring, nobody would believe you."
-    if world is not None and world.time < COURT_TIME:
+    if world is not None and world.time < cfg.court_time:
         return "The court has not assembled yet."
     if character.has_flag("announce_king_death"):
         return "You already addressed the court."

@@ -1,4 +1,5 @@
 import heapq
+import time
 import itertools
 
 def satisfied(state,conditions):
@@ -44,7 +45,12 @@ class Agent:
         self.give_up=3
         self.on_stuck = None
         self.clock = None
+        self.quiet = False
+        self.stats = {"replans": 0, "no_plan": 0, "action_failures": 0, "actions_done": 0, "steps_skipped": 0,
+                      "plan_seconds": 0.0}
     def say(self, text):
+        if self.quiet:
+            return
         stamp =f"{self.clock():5.0f}s " if self.clock else ""
         entry = f"{stamp}[{self.name}] {text}"
         self.log.append(entry)
@@ -63,7 +69,10 @@ class Agent:
         return max(avail_goals, key=lambda g: g.value(state))
     def replan(self, state, goal):
         usable = [a for a in self.actions if self.cooldowns.get(a.name,0) <= 0]
+        t0 = time.perf_counter()
         found = plan_any(state, goal.options, usable, role=self.role)
+        self.stats["plan_seconds"] += time.perf_counter() - t0
+        self.stats["replans"] +=1
         self.goal = goal
         self.plan = found or []
         if found:
@@ -71,6 +80,7 @@ class Agent:
             self.say(f"goal '{goal.name}': " + " > ".join(a.name for a in self.plan))
         else:
             self.say(f"goal '{goal.name}': no plan found.")
+            self.stats["no_plan"] += 1
             n = self.fail_streak.get(goal.name,0) +1
             self.fail_streak[goal.name] = n
             self.goal_cooldowns[goal.name] = self.cooldown_steps * min(2**(n-1), 12)
@@ -93,6 +103,7 @@ class Agent:
             if result == "running":
                 return action
             self.running, self.goal, self.plan = None, None, []
+            self.stats["actions_done" if result else "action_failures"] +=1
             return action
         if self.goal is None or goal.name != self.goal.name:
             self.running = None
@@ -108,10 +119,12 @@ class Agent:
             return action
         self.running = None
         if result:
+            self.stats["actions_done"] +=1
             self.fail_streak.pop(action.name,None)
             self.plan.pop(0)
         else:
             self.say(f"{action.name} failed, replanning.")
+            self.stats["action_failures"] +=1
             streak = self.fail_streak.get(action.name,0) + 1
             self.fail_streak[action.name] = streak
             self.cooldowns[action.name] = self.cooldown_steps * min(streak, 6)

@@ -161,7 +161,7 @@ class Castle:
         if c["left"] <= 0:
             self.coronation = None
             who.set_flag("crowned")
-            self.result = {"winner": "royal", "text": "The Royal has claimed the throne. The cover-up worked."}
+            self.result = {"winner": "royal","how": "coronation", "text": "The Royal has claimed the throne. The cover-up worked."}
             return "You have been crowned to be the new king. Long live the King."
         return None
 

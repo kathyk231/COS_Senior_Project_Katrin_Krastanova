@@ -8,12 +8,13 @@ class Settings:
         base_suspicion=2.5,
         lock_time=45.0,
         alert_gain=0.3,
-        patrol=False,
+        patrol=True,
         patrol_interval=40.0,
         cost_noise=0.15,
         think_delay=(0.1,0.6),
         suspicion_noise=0.5,
-        alert_shift =0.0
+        alert_shift =0.0,
+        deadline=600.0
     )
 
     def __init__(self):

@@ -9,7 +9,7 @@ import sabotage
 from sabotage import MEMORY_TIME, sees
 from role_sabotage import ROLE_GOALS
 
-CHASE_REACH = 15
+CHASE_REACH = 40
 CONFRONT_REACH = 45
 CHASE_TIMEOUT = 25.0
 PURSUIT_MEMORY = 4.0
@@ -148,6 +148,9 @@ class WorldRunner:
             else:
                 msg = sabotage.confront(self.character, target, data["mode"], data["item"], self.castle)
                 self.forget("opp_has_" + data["item"])
+                if data["item"] in sabotage.EVIDENCE_ITEMS:
+                    for i in sabotage.EVIDENCE_ITEMS:
+                        self.forget("opp_has_" + i)
         elif kind == "lock":
             msg = sabotage.lock_door(self.character, self._door(action), self.castle)
         elif kind == "sabotage":
@@ -175,8 +178,11 @@ class WorldRunner:
             self.timer = 0.0
             self.phase = "walk"
             if kind =="wait":
-                self.walker.stop()
-                self.phase = "do"
+                if "object" in action.data and self._start_walk(action,kind):
+                    pass
+                else:
+                    self.walker.stop()
+                    self.phase = "do"
             elif not self._start_walk(action, kind):
                 return self._fail("no place to walk to")
         if self.phase =="walk":
@@ -193,6 +199,9 @@ class WorldRunner:
             return True
         if self.timer < action.data.get("wait", 0):
             return "running"
+        if kind == "wait":
+            self.current = None
+            return "retry"
         return self._fail()
 class AIController:
     def __init__(self, character, castle, agent, runner, walker, manager, others):
@@ -235,7 +244,8 @@ class AIController:
         parts = [f"{q.title} ({q.current +1}/{len(q.steps)}): {q.current_text()}" for q in self.manager.active()]
         quest = "| ".join(parts) if parts else "all quests are completed."
         sees_text = ",".join(sorted(k[4:] for k in self.memory)) or "-"
-        return f"{self.character.name} [alert {self.alert:.1f}, sees {sees_text}]: {quest}"
+        goal = self.agent.goal.name if self.agent.goal else "-"
+        return f"{self.character.name} [alert {self.alert:.1f}, sees {sees_text}]  goal: {goal} | {quest}"
 def make_ai(character, castle, anchors, grid, actions, quests, others):
     actions = jitter_costs(actions, cfg.rng_cost, cfg.cost_noise)
     walker = Walker(character, grid)

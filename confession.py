@@ -19,6 +19,8 @@ def royal_accepts(royal, giver):
     return judged < SUSPICION_LIMIT
 
 def decision_cup(giver,royal,  world, accepted):
+    if not cfg.quiet:
+        print(f"[cup] evidence {evidence_count(giver)}, suspicion {suspicion_of(royal, giver):.1f}, refusals so far {royal.suspicion}, accepted {accepted}")
     world.pending_cup = None
     if accepted:
         how = [n for n,ok in (("toast", royal.has_flag(ANNOUNCED)),("evidence", evidence_count(giver) >= 2)) if ok]

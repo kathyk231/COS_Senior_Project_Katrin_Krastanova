@@ -30,26 +30,28 @@ def sabotage_actions(castle):
 
 def royal_goals():
     alert = lambda s: s.get("alert", 0) - cfg.alert_shift
+    def when(n, test):
+        return lambda s: n if (not s.get("announce_king_death") and test(s)) else 0
     goals = [
-        Goal("destroy the serum", {"opp_has_truth_serum": False}, lambda s: 9 if s.get("opp_has_truth_serum") and not s.get("destroy_used_up") else 0),
-        Goal("lock the Kings door", {"door_locked_kings_door": True}, lambda s: 6 if (s.get("opp_in_throne_room") or s.get("opp_in_entrance_hall")) and alert(s) >=2 else 0),
-        Goal("lock the Corridor door", {"door_locked_corridor_door": True}, lambda s: 5 if s.get("opp_in_corridor") and alert(s)>=2 else 0),
-        Goal("spoil the wine", {"wine_spoiled": True}, lambda s: 7 if s.get("opp_has_truth_serum") and not s.get("spoil_on_cooldown") else 0),
-        Goal("retake the king's ring", {"has_kings_ring":True}, lambda s: 8 if s.get("opp_has_kings_ring") else 0),
-        Goal("retake the jewelry", {"has_jewelry": True}, lambda s: 5 if s.get("opp_has_jewelry") else 0),
-        Goal("silence the guard", {"bribed_guard": True}, lambda s: 4 if alert(s) >= 2 else 0),
-        Goal("silence the farmer", {"bribed_stable_guy": True}, lambda s: 4 if alert(s) >= 3 else 0),
-        Goal("remove the robe", {"removed_king_vanity": True}, lambda s: 3 if alert(s) >= 4 else 0),
-        Goal("remove the cup", {"removed_king_nightstand": True}, lambda s: 3 if alert(s) >= 4 else 0),
-        Goal("secure the king's ring", {"has_kings_ring": True}, lambda s: 4 if alert(s) >= 3 else 0),
-        Goal("clean the blood", {"removed_king_carpet": True}, lambda s: 3 if alert(s) >= 4 else 0),
-        Goal("hide the bottle", {"removed_royal_nightstand": True}, lambda s: 3 if alert(s) >= 4 else 0)
+        Goal("destroy the serum", {"opp_has_truth_serum": False}, when(9, lambda s: s.get("opp_has_truth_serum") and not s.get("destroy_used_up"))),
+        Goal("lock the Kings door", {"door_locked_kings_door": True}, when(6, lambda s: (s.get("opp_in_throne_room") or s.get("opp_in_entrance_hall")) and alert(s) >=2 and not s.get("lock_cooldown_kings_door"))),
+        Goal("lock the Corridor door", {"door_locked_corridor_door": True}, when(5,lambda s:s.get("opp_in_corridor") and alert(s)>=2 and not s.get("lock_cooldown_corridor_door"))),
+        Goal("spoil the wine", {"wine_spoiled": True}, when(7, lambda s:s.get("opp_has_truth_serum") and not s.get("spoil_on_cooldown"))),
+        Goal("retake the king's ring", {"has_kings_ring":True}, when(8,lambda s: s.get("opp_has_kings_ring"))),
+        Goal("retake the jewelry", {"has_jewelry": True}, when(5,lambda s: s.get("opp_has_jewelry"))),
+        Goal("silence the guard", {"bribed_guard": True}, when(4, lambda s: alert(s) >= 2)),
+        Goal("silence the farmer", {"bribed_stable_guy": True}, when(4, lambda s: alert(s) >= 3)),
+        Goal("remove the robe", {"removed_king_vanity": True}, when(3, lambda s:  alert(s) >= 4 )),
+        Goal("remove the cup", {"removed_king_nightstand": True}, when(3, lambda s:  alert(s) >= 4 )),
+        Goal("secure the king's ring", {"has_kings_ring": True}, when(4, lambda s:  alert(s) >= 3 )),
+        Goal("clean the blood", {"removed_king_carpet": True}, when(3, lambda s: alert(s) >= 4 )),
+        Goal("hide the bottle", {"removed_royal_nightstand": True}, when(3, lambda s:  alert(s) >= 4 ))
     ]
     for item in EVIDENCE:
-        goals.append(Goal(f"retake the {item}", {"has_" + item:True}, lambda s, i=item: 8 if s.get("opp_has_" + i) else 0))
-    waiting = lambda s: (cfg.patrol and s.get("buried_letters") and not s.get("court_assembled") and not s.get("announce_king_death"))
+        goals.append(Goal(f"retake the {item}", {"has_" + item:True}, when(8, lambda s, i=item: s.get("opp_has_" + i))))
+    waiting = lambda s: (cfg.patrol and s.get("buried_letters") and not s.get("court_assembled"))
     for room in PATROL_ROOMS:
-        goals.append(Goal(f"patrol the {room}", {"fresh_" +slug(room): True}, lambda s: 2 if waiting(s) else 0))
+        goals.append(Goal(f"patrol the {room}", {"fresh_" +slug(room): True}, lambda s: 0 if s.get("announce_king_death")else (2 if waiting(s) else 0.5)))
     return goals
 def servant_goals():
     goals = []

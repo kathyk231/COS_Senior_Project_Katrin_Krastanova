@@ -60,6 +60,7 @@ def bury_evidence(character,spot, world=None):
             buried.append(item)
         return "You dig a hole and bury " + ", ".join(i.replace("_"," ") for i in carried) + "."
     if not buried:
+        character.flags.discard("saw_fresh_soil")
         return "Just soil and roots, nothing suspicious here."
     character.set_flag("saw_fresh_soil")
     if not character.inventory.has("spade"):

@@ -3,8 +3,10 @@ SIGHT = 800
 MEMORY_TIME = 8.0
 SPOIL_TIME = 60.0
 SPOIL_COOLDOWN = 150.0
+LOCK_COOLDOWN  = 90.0
 MAX_DESTROYS = 1
 PATROL_ROOMS = ["Woods", "Kings Room", "Entrance Hall", "Throne Room"]
+EVIDENCE_ITEMS = ["overturned_cup", "empty_bottle", "suspicious_robe", "letters"]
 def mark(castle, key):
     castle.sabotage.setdefault(key, []).append(castle.time)
 def spoil_ready(castle):
@@ -13,7 +15,7 @@ def spoil_ready(castle):
 def destroy_ready(castle):
     return len(castle.sabotage.get("destroy", [])) < MAX_DESTROYS
 def lock_door(character, door, castle):
-    if castle.time - getattr(door, "last_lock", -999.0) < 90.0:
+    if castle.time - getattr(door, "last_lock", -999.0) < LOCK_COOLDOWN:
         return "You can't lock the door it needs time to reset.."
     for c in castle.characters:
         if c is not character and c.position.distance_to(door.position) < 70:
@@ -57,10 +59,15 @@ def confront(royal, victim, mode, item, castle):
                     o.reset_for(victim)
         castle.notify(victim, f"The royal destroys your {name}!")
         return f"{royal.name} destroys {victim.name}'s {name}."
-    royal.inventory.add_item(item)
+    taken =[item]
+    if item in EVIDENCE_ITEMS:
+        taken += [i for i in EVIDENCE_ITEMS if i != item and victim.inventory.remove_item(i)]
+    for i in taken:
+        royal.inventory.add_item(i)
     mark(castle, "confiscate")
-    castle.notify(victim, f"The royal confiscates your {name}!")
-    return f"{royal.name} confiscates {victim.name}'s {name}."
+    names = ", ".join(i.replace("_", " ") for i in taken)
+    castle.notify(victim, f"The royal confiscates your {names}!")
+    return f"{royal.name} confiscates {victim.name}'s {names}."
 def sees(a, b):
     return a.room is not None and a.room == b.room and a.position.distance_to(b.position) <= SIGHT
 def slug(text):

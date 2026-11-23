@@ -20,10 +20,11 @@ class QuestManager:
                         self.on_complete(quest)
 
 class QuestStep:
-    def __init__(self,text, required, alternatives = None):
+    def __init__(self,text, required, alternatives = None, essential = False):
         self.text = text
         self.required = required
         self.options = [required] + (alternatives or [])
+        self.essential = essential
     def is_done(self,character):
         facts = character.facts()
         return any(all(facts.get(key)== value for key, value in option.items()) for option in self.options)

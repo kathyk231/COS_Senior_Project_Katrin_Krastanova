@@ -1,13 +1,13 @@
 import pygame
 from inventory import Inventory
-
+COLLISION_RADIUS = 12
 class Character:
     def __init__(self,name,  position, state):
         self.name = name
         self.position = pygame.Vector2(position)
         self.state = state
         self.speed = 170
-        self.radius = 12
+        self.radius = COLLISION_RADIUS
         self.draw_radius =24
         self.color = (165, 0,0 )
         self.inventory = Inventory()

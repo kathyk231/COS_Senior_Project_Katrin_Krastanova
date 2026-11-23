@@ -14,10 +14,11 @@ def satisfied(state,conditions):
 def state_key(state):
     return frozenset(state.items())
 class Goal:
-    def __init__(self, name, options, priority=1):
+    def __init__(self, name, options, priority=1, essential=False):
         self.name = name
         self.options = [options] if isinstance(options, dict) else list(options)
         self.priority = priority
+        self.essential = essential
 
     def value(self, state):
         return self.priority(state) if callable(self.priority) else self.priority
@@ -25,7 +26,7 @@ class Goal:
         return any(satisfied(state, o) for o in self.options)
     @staticmethod
     def from_step(step, priority=1):
-        return Goal(step.text, step.options, priority)
+        return Goal(step.text, step.options, priority, getattr(step, "essential", False))
 
 class Agent:
     def __init__(self, name, actions,goals, role=None, cooldown =20):
@@ -83,8 +84,9 @@ class Agent:
             self.stats["no_plan"] += 1
             n = self.fail_streak.get(goal.name,0) +1
             self.fail_streak[goal.name] = n
-            self.goal_cooldowns[goal.name] = self.cooldown_steps * min(2**(n-1), 12)
-            if n >= self.give_up and self.on_stuck:
+            cap = 3 if goal.essential else 12
+            self.goal_cooldowns[goal.name] = self.cooldown_steps * min(2**(n-1), cap)
+            if n >= self.give_up and self.on_stuck and not goal.essential:
                 self.fail_streak.pop(goal.name)
                 self.on_stuck(goal)
     def step(self, state, execute):
@@ -103,7 +105,8 @@ class Agent:
             if result == "running":
                 return action
             self.running, self.goal, self.plan = None, None, []
-            self.stats["actions_done" if result else "action_failures"] +=1
+            if result != "retry":
+                self.stats["actions_done" if result else "action_failures"] +=1
             return action
         if self.goal is None or goal.name != self.goal.name:
             self.running = None
@@ -118,6 +121,9 @@ class Agent:
         if result == "running":
             return action
         self.running = None
+        if result == "retry":
+            self.plan = []
+            return action
         if result:
             self.stats["actions_done"] +=1
             self.fail_streak.pop(action.name,None)

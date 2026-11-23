@@ -3,7 +3,8 @@ from door import Door
 from player_state import Role
 from create_world_objects import create_interactables, create_props, create_mushroom_trail
 from npcs import create_npcs
-from sabotage import slug
+from sabotage import slug, EVIDENCE_ITEMS
+from settings import cfg
 
 class Castle:
     CORONATION_TIME = 15.0
@@ -112,6 +113,12 @@ class Castle:
         if best is None:
             return "There is noone to give anything to."
         return best.on_give(character, best, self)
+    def verdict(self):
+        servant = next((c for c in self.characters if c.state.role == Role.SERVANT), None)
+        held = sum (1 for i in EVIDENCE_ITEMS if servant is not None and servant.inventory.has(i))
+        if held >= 2:
+            return {"winner": "servant", "how": "deadline", "text": "The court adjourns. The Servant lays the evidence before it, and the Royal's story falls apart."}
+        return {"winner": "royal", "how": "deadline", "text": "The court adjourns. Nobody can prove anything, the Royal keeps the crown."}
     def room_at(self, position):
         position = (position.x, position.y)
         for room in reversed(self.rooms):
@@ -139,6 +146,9 @@ class Castle:
             self.notices.append(text)
     def update(self,dt):
         self.time += dt
+        if self.result is None and self.time >= cfg.deadline:
+            self.result = self.verdict()
+            return "The court adjourns."
         for door in self.doors:
             if door.locked and self.time >=  door.lock_until:
                 door.locked = False

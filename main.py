@@ -21,8 +21,8 @@ WIDTH, HEIGHT, FPS = 960, 540, 60
 SPEEDS = [1,3,8]
 MODES = {"ai": None, "servant": Role.SERVANT, "royal": Role.ROYAL}
 mode = sys.argv[1] if len(sys.argv) > 1 else "ai"
-cfg.reset(int(sys.argv[2]) if len(sys.argv) > 2 else 0)
 ROLE = MODES[mode]
+cfg.reset(int(sys.argv[2]) if len(sys.argv) > 2 else 0, deadline=1800.0 if ROLE else 600.0)
 AI_ROLES = [Role.SERVANT, Role.ROYAL]
 SPAWNS ={Role.ROYAL: (1068, 880), Role.SERVANT:(900,1500)}
 COLORS = {Role.ROYAL: (170,60,160), Role.SERVANT:(60,160,90)}

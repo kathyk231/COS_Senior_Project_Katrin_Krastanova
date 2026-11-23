@@ -1,10 +1,12 @@
 import pygame
 import heapq
+from character import COLLISION_RADIUS
 
 CELL = 16
 DIRS = [(1,0),(-1,0),(0,1),(0,-1),(1,1),(-1,-1),(1,-1),(-1,1)]
 DOOR_REACH = 40
 ARRIVE = 6
+MARGIN = 4
 class Walker:
     def __init__(self, character, grid):
         self.character = character
@@ -89,12 +91,12 @@ def door_ok(door, character):
     return door.is_open or door.can_open(character)
 
 class NavGrid:
-    def __init__(self, navmesh, width, height, cell=CELL, radius=12):
+    def __init__(self, navmesh, width, height, cell=CELL, radius=COLLISION_RADIUS+MARGIN):
         self.cell = cell
         self.navmesh = navmesh
         self.cols = width // cell +1
         self.rows = height // cell +1
-        self.radius = radius
+        self.radius = COLLISION_RADIUS +4
         self.free= set()
         self.gates = {}
         self.build()
@@ -142,7 +144,12 @@ class NavGrid:
             if best:
                 return best[1]
         return None
-
+    def gate_penalty(self, cell):
+        door =self.gates.get(cell)
+        if door is None:
+            return 0.0
+        x,y = self.center(*cell)
+        return 0.08 *(abs(x- door.position[0]) + abs(y- door.position[1]))
     def neighbors(self, cell, character):
         for dx,dy in DIRS:
             nxt = (cell[0] + dx, cell[1] + dy)
@@ -150,11 +157,11 @@ class NavGrid:
                 continue
             if dx and dy and not (self.passable((cell[0] + dx, cell[1]), character) and self.passable((cell[0], cell[1] + dy), character)):
                 continue
-            yield nxt, (1.414 if dx and dy else 1.0)
+            yield nxt, (1.414 if dx and dy else 1.0) +self.gate_penalty(nxt)
     def anchor(self, point):
         cell = self.nearest_passable(self.cell_of(point), None, max_ring=20)
         return pygame.Vector2(self.center(*cell))
-    def stand_point(self, obj, reach=26):
+    def stand_point(self, obj, reach=34):
         r = obj.rect
         c = self.cell
         best = None

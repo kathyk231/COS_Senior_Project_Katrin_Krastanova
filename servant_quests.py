@@ -40,7 +40,7 @@ def create_servant_quests():
         S("Take a wine bottle from the barrel.", {"has_wine":True},[{"mixed_spiked_wine":True}]),
         S("Mix the truth serum and the wine on the Kitchen table", {"has_spiked_wine":True}),
         S("Bring it to the Throne Room", {"room":"Throne Room"}),
-        S("Make the Royal drink the spiked wine.", {"royal_confessed": True})
+        S("Make the Royal drink the spiked wine.", {"royal_confessed": True}, essential=True)
     ], after=["s4"])
 
     return [s1,s2,s3,s4,s5]

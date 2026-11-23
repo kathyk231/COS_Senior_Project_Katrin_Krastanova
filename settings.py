@@ -4,7 +4,7 @@ class Settings:
     DEFAULTS = dict(
         court_time=240.0,
         evidence_bonus=2,
-        toast_bonus=2,
+        toast_bonus=1.45,
         base_suspicion=2.5,
         lock_time=45.0,
         alert_gain=0.3,
@@ -14,7 +14,8 @@ class Settings:
         think_delay=(0.1,0.6),
         suspicion_noise=0.5,
         alert_shift =0.0,
-        deadline=600.0
+        deadline=600.0,
+        coronation_time=15.0
     )
 
     def __init__(self):

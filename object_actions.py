@@ -100,5 +100,5 @@ def sit_on_the_throne(character,seat,world=None):
         return "First announce the kings death to the court on the podium."
     if world.coronation:
         return "You are already seated."
-    world.coronation = {"who": character, "left": world.CORONATION_TIME}
+    world.coronation = {"who": character, "left": cfg.coronation_time}
     return "You sit on the throne. Stay beside it for 10 seconds to claim it."

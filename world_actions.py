@@ -146,7 +146,7 @@ def special_actions(castle):
     for obj in ("podium_speech", "podium_speech_2"):
         AS("announce death", obj, {"has_kings_ring": True,"court_assembled":True, **{**{"buried_"+i:True for i in EVIDENCE}}}, {"announce_king_death": True}, roles={R})
     out.append(Action("wait for the court to assemble", {"room":"Throne Room"}, {"court_assembled": True}, 5, roles={R},data={"kind":"wait", "wait":700, "object": "podium_speech_2"}))
-    AS("sit on throne", "throne_seat",{"announce_king_death": True}, {"crowned": True}, roles={R}, wait= 20)
+    AS("sit on throne", "throne_seat",{"announce_king_death": True}, {"crowned": True}, roles={R}, wait= cfg.coronation_time + 6)
     AS("order guard", "king_guard", {}, {"bribed_guard": True}, roles={R}, kind= "give", item="order", cost=4)
     AS("order farmer", "stable_guy", {}, {"bribed_stable_guy": True}, roles={R}, kind= "give", item="order", cost=4)
     return out

@@ -1,19 +1,21 @@
 import sys
-from batch import run_batch, summarize, print_summary
+from batch import run_batch, summarize, print_summary, STAMP
 
 SWEEPS = {
-    "court_time": [180,240,300,360,480],
-    "evidence_bonus": [0,1,2],
-    "lock_time": [20,45,90],
-    "alert_shift": [-1.0,0.0,1.0,2.0],
-    "patrol": [False,True]
+    #"court_time": [120,140,160,180],
+    #"evidence_bonus": [0,1,2],
+    #"lock_time": [20,45,90],
+    #"alert_shift": [-1.0,0.0,1.0,2.0],
+    #"patrol": [False,True],
+    "coronation_time": [8.0,12.0,15.0,20.0],
+    #"toast_bonus": [1.45]
 }
 def main(n=30, workers=1):
     table = []
     for param, values in SWEEPS.items():
         print(f"\n== {param} (all other settings at their defaults) ==")
         for v in values:
-            rows = run_batch(f"{param}={v}", n, csv_path="results/sweep.csv", workers=workers, **{param:v})
+            rows = run_batch(f"{param}={v}", n, csv_path=f"results/sweep_{STAMP}.csv", workers=workers, **{param:v})
             s = summarize(f"{param}={v}",rows)
             print_summary(s)
             table.append((param, v, s))
@@ -23,12 +25,12 @@ def main(n=30, workers=1):
         print(f"  {p}={v}:  {s['rate']:.0%}  (CI {s['lo']:.0%}-{s['hi']:.0%})")
     if not hits:
         print("  none: no single setting reaches the target, try other combinations.")
-
-    off = next(s for p,v,s in table if p == "patrol" and v is False)
-    on = next(s for p,v,s in table if p == "patrol" and v is True)
-    overlap = not (on["hi"] < off["lo"] or off["hi"] < on["lo"])
-    print(f"\nPatrol: off {off['rate']:.0%} -> on {on['rate']:.0%}; "
-          f"{'confidence intervals overlap, difference is not shown' if overlap else 'difference is clear.'}")
+    if any(p == "patrol" for p,v,s in table):
+        off = next(s for p,v,s in table if p == "patrol" and v is False)
+        on = next(s for p,v,s in table if p == "patrol" and v is True)
+        overlap = not (on["hi"] < off["lo"] or off["hi"] < on["lo"])
+        print(f"\nPatrol: off {off['rate']:.0%} -> on {on['rate']:.0%}; "
+              f"{'confidence intervals overlap, difference is not shown' if overlap else 'difference is clear.'}")
 
 if __name__ == "__main__":
     a=sys.argv[1:]

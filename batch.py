@@ -22,6 +22,7 @@ STEP = 1.0/30.0
 MAX_TIME = 900.0
 R, S = Role.ROYAL, Role.SERVANT
 SPAWNS = {R: (1068, 880), S:(900,1500)}
+STAMP = time.strftime("%Y%m%d%H%M%S")
 
 def quests_for(role):
     return create_servant_quests() if role == S else create_royal_quests()
@@ -78,7 +79,8 @@ def write_csv(rows, path):
             w.writeheader()
         w.writerows(rows)
 
-def run_batch(label, n, seed0=1, csv_path="results/games.csv", workers=1, **overrides):
+def run_batch(label, n, seed0=1, csv_path=None, workers=1, **overrides):
+    csv_path = csv_path or f"results/games_{STAMP}.csv"
     jobs = [(seed0 + i, label, overrides) for i in range(n)]
     if workers > 1:
         with ProcessPoolExecutor(workers) as ex:

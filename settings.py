@@ -12,13 +12,14 @@ class Settings:
         patrol_interval=40.0,
         cost_noise=0.15,
         think_delay=(0.1,0.6),
-        suspicion_noise=0.5
+        suspicion_noise=0.5,
+        alert_shift =0.0
     )
 
     def __init__(self):
         self.quiet = False
-        self.reset(0)
         self.step = 1.0/60.0
+        self.reset(0)
 
     def reset(self, seed=0, **overrides):
         for k,v in self.DEFAULTS.items():

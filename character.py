@@ -7,7 +7,8 @@ class Character:
         self.position = pygame.Vector2(position)
         self.state = state
         self.speed = 170
-        self.radius = 24
+        self.radius = 12
+        self.draw_radius =24
         self.color = (165, 0,0 )
         self.inventory = Inventory()
         self.flags = set()
@@ -20,7 +21,7 @@ class Character:
         for ox,oy in ((0,0),(r,0),(-r,0),(0,r),(0,-r)):
             if not navmesh.is_walkable(pygame.Vector2(position.x+ox,position.y+oy)):
                 return False
-            return True
+        return True
 
     def move(self,direction, dt, navmesh):
         if direction.length_squared() == 0:
@@ -35,7 +36,7 @@ class Character:
 
     def draw(self, surface, camera):
         screen_position = (self.position.x - camera.x, self.position.y - camera.y)
-        pygame.draw.circle(surface, self.color, (int(screen_position[0]), int(screen_position[1])), self.radius)
+        pygame.draw.circle(surface, self.color, (int(screen_position[0]), int(screen_position[1])), self.draw_radius)
     def update_room(self, castle):
         self.room = castle.room_at(self.position)
     def set_flag(self,flag):

@@ -13,11 +13,16 @@ from world_setup import create_world
 from world_actions import build_world_actions, EVIDENCE
 from ai_controller import make_ai
 from role_sabotage import sabotage_actions
+import sys
+from settings import cfg
 
 
 WIDTH, HEIGHT, FPS = 960, 540, 60
 SPEEDS = [1,3,8]
-ROLE = None
+MODES = {"ai": None, "servant": Role.SERVANT, "royal": Role.ROYAL}
+mode = sys.argv[1] if len(sys.argv) > 1 else "ai"
+cfg.reset(int(sys.argv[2]) if len(sys.argv) > 2 else 0)
+ROLE = MODES[mode]
 AI_ROLES = [Role.SERVANT, Role.ROYAL]
 SPAWNS ={Role.ROYAL: (1068, 880), Role.SERVANT:(900,1500)}
 COLORS = {Role.ROYAL: (170,60,160), Role.SERVANT:(60,160,90)}
@@ -32,7 +37,7 @@ def main():
     pygame.display.set_caption("I will decide on a name, I promise")
     clock = pygame.time.Clock()
     screen.fill((30, 35, 50))
-    loading = font.render("Building the castle...", True, (0,0,0))
+    loading = font.render("Building the castle...", True, (255,255,255))
     screen.blit(loading, loading.get_rect(center=(WIDTH//2,HEIGHT//2)))
     pygame.display.flip()
     messages = MessageLog(font)
@@ -121,7 +126,7 @@ def main():
                         royal.set_flag("buried_" + item)
                 for ctrl in ctrls:
                     ctrl.alert = max(ctrl.alert, 5.0)
-            elif key == pygame.K_F12:
+            elif key == pygame.K_F12 and royal:
                 door = next(d for d in castle.doors if d.name == "Kings door")
                 lock_door(royal, door, castle)
                 for ctrl in ctrls:
@@ -133,7 +138,7 @@ def main():
                 text = castle.interact(player)
                 if text:
                     messages.say(text)
-            elif key == pygame.K_b:
+            elif player and key == pygame.K_b:
                 messages.say(castle.give(player))
             elif player and castle.pending_cup and key in (pygame.K_y, pygame.K_n):
                 p = castle.pending_cup
@@ -173,8 +178,8 @@ def main():
             c.draw(screen, camera)
         if show_grid:
             c = grid.cell
-            for cx in range(int(camera.x // c), int(camera.x + WIDTH) + 1):
-                for cy in range(int(camera.y // c), int(camera.y + HEIGHT) + 1):
+            for cx in range(int(camera.x // c), int((camera.x + WIDTH)//c) + 1):
+                for cy in range(int(camera.y // c), int((camera.y + HEIGHT)//c) + 1):
                     px, py = grid.center(cx, cy)
                     pos = (int(px-camera.x),int(py-camera.y))
                     if (cx,cy)in grid.free:
@@ -191,7 +196,7 @@ def main():
         if quests:
             quest_log.draw(screen,quests, player)
         for i,ctrl in enumerate(ctrls):
-            screen.blit(font.render(ctrl.status_text(),True,(0,0,0)),(10,100))
+            screen.blit(font.render(ctrl.status_text(),True,(0,0,0)), (10, 100+22*i))
         if castle.coronation:
             t = font.render(f"Coronation: {castle.coronation['left']:.0f}s",True,(0,0,0))
             screen.blit(t,(WIDTH//2 - t.get_width()//2,40))

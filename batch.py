@@ -34,6 +34,7 @@ def run_game(seed, label="base", max_time= MAX_TIME, **overrides):
     pygame.display.set_mode((1,1))
     cfg.reset(seed, **overrides)
     cfg.quiet = True
+    cfg.step = STEP
     started = time.perf_counter()
     servant = Character("Servant AI", SPAWNS[S], PlayerState(S))
     royal = Character("Royal AI", SPAWNS[R], PlayerState(R))
@@ -105,8 +106,8 @@ def summarize(label, rows):
     return {"label": label, "n":n,"servant":sw,"royal":rw, "none":nw, "rate": sw/n, "lo":lo, "hi":hi, "mean_time":sum(r["game_time"] for r in rows)/n}
 def print_summary(s):
     flag = " <- in 40-60% target" if 0.4 <= s["rate"] <= 0.6 else ""
-    print(f"{s['label']:26} n={s['n']:3}  servant {s['servant':3]}  ({s['rate']:5.1%}, "
-          f"95% CI {s['lo']:.0%}-{s['hi']:.0%}   royal {s['royal']:3}   none  {s['none']:2}"
+    print(f"{s['label']:26} n={s['n']:3}  servant {s['servant']:3}  ({s['rate']:5.1%}, "
+          f"95% CI {s['lo']:.0%}-{s['hi']:.0%})   royal {s['royal']:3}   none  {s['none']:2}  "
           f"mean {s['mean_time']:5.0f}s{flag}")
 def repro(seed=7):
     skip = {"wall_s", "servant_plan_s", "royal_plan_s"}
@@ -126,4 +127,4 @@ if __name__ == "__main__":
     rows = run_batch("custom", n, workers=workers, **ov)
     for r in rows[:5]:
         print(r["seed"], r["winner"], r["how"], r["game_time"], "wall", r["wall_s"])
-    print_summary(summarize("custom" + " ".join(args[1:]), rows))
+    print_summary(summarize("custom " + " ".join(args[1:]), rows))

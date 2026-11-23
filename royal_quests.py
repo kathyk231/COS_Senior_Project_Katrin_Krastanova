@@ -37,7 +37,7 @@ def create_royal_quests():
     r5= Quest("r5", "Take Throne:",[
         S("Go to the Throne Room.",{"room":"Throne Room"}),
         S("Announce the king's death on the podium.",{"announce_king_death": True}),
-        S("Sit on the throne for 10 seconds.", {"crowned":True})
+        S("Sit on the throne for 15 seconds.", {"crowned":True})
     ], after=["r4"])
 
     return [r1,r2,r3,r4,r5]

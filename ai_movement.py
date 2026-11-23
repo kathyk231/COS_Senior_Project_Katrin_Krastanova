@@ -148,7 +148,7 @@ class NavGrid:
             nxt = (cell[0] + dx, cell[1] + dy)
             if not self.passable(nxt, character):
                 continue
-            if dx and dy and not (self.passable((cell[0] + dx, cell[1]), character), self.passable((cell[0], cell[1] + dy), character)):
+            if dx and dy and not (self.passable((cell[0] + dx, cell[1]), character) and self.passable((cell[0], cell[1] + dy), character)):
                 continue
             yield nxt, (1.414 if dx and dy else 1.0)
     def anchor(self, point):

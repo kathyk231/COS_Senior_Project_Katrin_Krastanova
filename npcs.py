@@ -2,7 +2,7 @@ from interactable import Interactable
 from player_state import Role
 from character import Character
 from player_state import PlayerState, Role
-from confession import offer_cup
+from confession import offer_cup, ANNOUNCED
 
 GUARD_BRIBES = ["jewelry", "queens_ring"]
 FARMER_BRIBES = [ "queens_ring", "jewelry"]
@@ -32,7 +32,7 @@ def give_guard(character, guard, world=None, item =None):
         return "Guard: Coming to pay again?"
     if character.has_flag("guard_drunk"):
         return "Guard: I can't drink anymore."
-    if role == Role.SERVANT and character.inventory.remove_item("wine"):
+    if role == Role.SERVANT and item in (None, "wine") and character.inventory.remove_item("wine"):
         character.set_flag("guard_drunk")
         return "The guard takes the wine and dozes off. You can sneak past him now."
     if role == Role.SERVANT and guard.data.get("paid_by") == "royal":
@@ -60,7 +60,7 @@ def give_stable_guy(character, npc, world=None, item=None):
         if it in FARMER_BRIBES and character.inventory.remove_item(it):
             character.set_flag("bribed_stable_guy")
             npc.data["silenced"] = True
-            name = item.replace("_", " ")
+            name = it.replace("_", " ")
             return f"The farmer pockets the {name}. He will keep quiet."
     if item in (None, "order"):
         character.set_flag("bribed_stable_guy")
@@ -72,7 +72,7 @@ def talk_royal(character, npc, world=None):
     royal = npc.data["character"]
     if royal.has_flag("drank_truth_serum"):
         return "ROYAL: I... I had my father taken... away... I WANTED THE THRONE FOR MYSELF!!! I DESERVE IT!!..."
-    if royal.has_flag("announced_king_death"):
+    if royal.has_flag(ANNOUNCED):
         return "ROYAL: The King is dead. Long live the crown."
     return "ROYAL: The king is missing. A tragedy has struck. What do you want Servant??"
 

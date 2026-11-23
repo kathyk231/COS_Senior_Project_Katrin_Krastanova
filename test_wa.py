@@ -9,7 +9,7 @@ from world_actions import build_world_actions, sense_state
 
 pygame.init()
 pygame.display.set_mode((1,1))
-castle, navmesh, grid, anchors = create_world(with_standin=True)
+castle, navmesh, grid, anchors = create_world()
 actions = build_world_actions(castle, anchors)
 print(len(actions), "actions generated OK")
 

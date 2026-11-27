@@ -106,6 +106,8 @@ class Castle:
     def give(self, character, reach=60):
         best, best_distance = None, reach
         for o in self.interactable:
+            if o.data.get("character") is character:
+                continue
             if o.on_give:
                 d = o.distance_to(character.position)
                 if d <= best_distance:
@@ -134,6 +136,8 @@ class Castle:
     def nearest_interactable(self, character, reach=60):
         best, best_distance = None, reach
         for interactable in self.interactable:
+            if interactable.data.get("character") is character:
+                continue
             d = interactable.distance_to(character.position)
             if d <= best_distance:
                 best, best_distance = interactable, d

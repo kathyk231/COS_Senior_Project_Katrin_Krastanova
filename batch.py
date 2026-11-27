@@ -123,10 +123,16 @@ if __name__ == "__main__":
     if "--repro" in args:
         repro()
         sys.exit()
-    n = int(args[0]) if args else 10
+    try:
+        n = int(args[0]) if args else 10
+    except ValueError:
+        sys.exit(f"The number of games must be a whole number, got '{args[0]}'")
     ov = {k: ast.literal_eval(v) for k,v in (a.split("=", 1) for a in args[1:])}
     workers = int(ov.pop("workers", 1))
-    rows = run_batch("custom", n, workers=workers, **ov)
+    try:
+        rows = run_batch("custom", n, workers=workers, **ov)
+    except KeyError as e:
+        sys.exit(f"Bad setting: {e}")
     for r in rows[:5]:
         print(r["seed"], r["winner"], r["how"], r["game_time"], "wall", r["wall_s"])
     print_summary(summarize("custom " + " ".join(args[1:]), rows))

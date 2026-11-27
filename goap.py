@@ -73,6 +73,8 @@ class Agent:
         t0 = time.perf_counter()
         found = plan_any(state, goal.options, usable, role=self.role)
         self.stats["plan_seconds"] += time.perf_counter() - t0
+        if time.perf_counter() - t0 > 0.1:
+            print(f"slow plan {time.perf_counter() - t0:.2f} seconds for '{goal.name}'")
         self.stats["replans"] +=1
         self.goal = goal
         self.plan = found or []
@@ -145,6 +147,10 @@ class Action:
         self.roles = set(roles) if roles else None
         self.role_costs = role_costs or {}
         self.data = data or {}
+        if self.cost < 0:
+            raise ValueError(f"action '{self.name}: cost must not be negative.")
+        if self.roles is not None and len(self.roles) == 0:
+            raise ValueError(f"action '{self.name}: needs at least one role.")
     def allowed_for(self, role):
         return self.roles is None or role is None or role in self.roles
     def cost_for(self, role):

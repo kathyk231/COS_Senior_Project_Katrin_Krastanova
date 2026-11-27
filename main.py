@@ -1,5 +1,6 @@
 import pygame
 import textwrap
+import time
 from player import Player
 from player_state import PlayerState, Role
 from sabotage import lock_door
@@ -21,8 +22,14 @@ WIDTH, HEIGHT, FPS = 960, 540, 60
 SPEEDS = [1,3,8]
 MODES = {"ai": None, "servant": Role.SERVANT, "royal": Role.ROYAL}
 mode = sys.argv[1] if len(sys.argv) > 1 else "ai"
+if mode not in MODES:
+    sys.exit(f"Unknown mode '{mode}'. Use one of: {', '.join(MODES)}")
+try:
+    seed = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+except ValueError:
+    sys.exit(f"The seed must be a whole number, got '{sys.argv[2]}'")
 ROLE = MODES[mode]
-cfg.reset(int(sys.argv[2]) if len(sys.argv) > 2 else 0, deadline=1800.0 if ROLE else 600.0)
+cfg.reset(seed, deadline=1800.0 if ROLE else 600.0)
 AI_ROLES = [Role.SERVANT, Role.ROYAL]
 SPAWNS ={Role.ROYAL: (1068, 880), Role.SERVANT:(900,1500)}
 COLORS = {Role.ROYAL: (170,60,160), Role.SERVANT:(60,160,90)}
@@ -67,10 +74,10 @@ def main():
     speed_i, watch_i = 0, 0
     show_grid = False
     running = True
-
-
+    frame_ms = []
     while running:
         dt = min(clock.tick(FPS)/1000.0, 0.05)
+        t0 = time.perf_counter()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -222,8 +229,14 @@ def main():
                 line = font.render(text_line, True, (255,255,255))
                 screen.blit(line,line.get_rect(center=(WIDTH//2,y)))
                 y += line.get_height() + 4
+        ms = ((time.perf_counter() -t0)* 1000)
+        frame_ms.append(ms)
+        if ms >30:
+            print(f"slow frame {ms:.0f} ms at game time {castle.time:.1f} s")
         pygame.display.flip()
     pygame.quit()
+    s = sorted(frame_ms)
+    print(f"frames {len(s)} average {sum(s)/len(s):.2f} ms  99th percentile {s[int(len(s)*0.99)]:.2f} ms  maximum {s[-1]:.2f} ms")
 
 if __name__ == "__main__":
     main()

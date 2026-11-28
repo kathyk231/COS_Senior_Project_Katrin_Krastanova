@@ -17,4 +17,4 @@ def load_image(folder, name, scale=SCALE):
     _cache[key] = img
     return img
 def load_sprite(name):
-    return load_image("furniture", name)
+    return load_image("art", name)

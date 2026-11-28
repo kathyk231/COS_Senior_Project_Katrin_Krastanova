@@ -90,8 +90,8 @@ def create_r_standin():
 def create_npcs():
     I = Interactable
     return [
-        I("king_guard","King's Guard", (1480,540, 40,52),"Throne Room", verb= "Talk", color=(60,80,160),
-          use=talk_guard, on_give=give_guard),
+        I("king_guard","King's Guard", (1475,540, 40,52),"Throne Room", verb= "Talk", color=(60,80,160),
+          use=talk_guard, on_give=give_guard, sprite= "guard"),
         I("stable_guy", "Farmer", (1736,1740,40,52), "Stable", verb= "Talk", color=(60,80,160),
-          use=talk_stable_guy, on_give=give_stable_guy)
+          use=talk_stable_guy, on_give=give_stable_guy, sprite= "farmer")
     ]
